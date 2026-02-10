@@ -156,14 +156,14 @@ const PrintableView: React.FC<Props> = ({ quotation, state }) => {
                 <tr>
                   <td className="text-center text-gray-300 font-black">01</td>
                   <td className="py-3 uppercase tracking-tight text-gray-800">Total plant cost of {quotation.systemDescription}</td>
-                  <td className="text-right font-black pr-10 text-black">₹ {quotation.pricing.onGridSystemCost.toLocaleString('en-IN')}</td>
+                  <td className="text-right font-black pr-10 text-black text-[11pt]">₹ {quotation.pricing.onGridSystemCost.toLocaleString('en-IN')}</td>
                 </tr>
                 <tr className="bg-red-50/40">
                   <td className="text-center text-red-200 font-black">02</td>
                   <td className="py-3 uppercase tracking-tight text-red-700 leading-snug">
                     Subsidy Amount as Per PM Surya Ghar Approved Guidelines Directly Credit to Customer Bank Account
                   </td>
-                  <td className="text-right font-black pr-10 text-red-600">(-) ₹ {quotation.pricing.subsidyAmount.toLocaleString('en-IN')}</td>
+                  <td className="text-right font-black pr-10 text-red-600 text-[11pt]">(-) ₹ {quotation.pricing.subsidyAmount.toLocaleString('en-IN')}</td>
                 </tr>
               </tbody>
             </table>
@@ -194,7 +194,7 @@ const PrintableView: React.FC<Props> = ({ quotation, state }) => {
               <thead>
                 <tr className="bg-gray-100 text-gray-600">
                   <th className="w-20 text-center bg-gray-200 text-gray-700 !py-2 text-[6.5pt]">SL No</th>
-                  <th className="!py-2 bg-gray-200 text-gray-700 font-black text-[6.5pt] tracking-widest">DESCRIPTION (CUSTOMER SCOPE CHARGES)</th>
+                  <th className="!py-2 bg-gray-200 text-gray-700 font-black text-[6.5pt] tracking-widest">DESCRIPTION (additional CHARGES-CUSTOMER SCOPE)</th>
                   <th className="text-right w-44 pr-10 bg-gray-200 text-gray-700 font-black text-[6.5pt] tracking-widest">RATE (INR)</th>
                 </tr>
               </thead>
