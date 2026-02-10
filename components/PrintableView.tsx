@@ -38,6 +38,25 @@ const PrintableView: React.FC<Props> = ({ quotation, state }) => {
     ) : null
   );
 
+  // Reusable Seal Component with very small fonts
+  const CompanySealBlock = ({ imageBottomClass = "bottom-6" }: { imageBottomClass?: string }) => (
+    <div className="text-center w-52">
+      <div className="h-16 border-b border-gray-100 mb-1 relative">
+         {state.company.seal ? (
+           <img 
+             src={state.company.seal} 
+             alt="Seal" 
+             className={`absolute ${imageBottomClass} left-1/2 -translate-x-1/2 h-20 w-auto object-contain z-10`} 
+           />
+         ) : (
+           <span className="absolute bottom-1 left-1/2 -translate-x-1/2 text-[5pt] text-red-100 uppercase font-black tracking-widest whitespace-nowrap">Official Seal</span>
+         )}
+      </div>
+      <p className="text-[5.5pt] font-black uppercase text-red-600 tracking-[0.1em] pt-1 border-t border-red-600 truncate">For {state.company.name}</p>
+      <p className="text-[5pt] text-gray-400 font-black uppercase mt-0.5 tracking-[0.2em]">Authorized Signatory</p>
+    </div>
+  );
+
   return (
     <div className="pdf-container">
       {/* PAGE 1: EXECUTIVE SUMMARY & PRICING */}
@@ -52,7 +71,7 @@ const PrintableView: React.FC<Props> = ({ quotation, state }) => {
               <h1 className="text-[14pt] font-[900] text-black leading-none uppercase tracking-tighter whitespace-nowrap">
                 {state.company.name}
               </h1>
-              <p className="text-[7.5pt] text-red-600 font-black tracking-[0.2em] uppercase mt-1 mb-2">
+              <p className="text-[6pt] text-red-600 font-black tracking-[0.2em] uppercase mt-1 mb-2 whitespace-nowrap">
                 ADANI SOLAR AUTHORIZED CHANNEL PARTNER
               </p>
               
@@ -229,7 +248,7 @@ const PrintableView: React.FC<Props> = ({ quotation, state }) => {
             Fixed Bill of Materials - {quotation.systemDescription}
           </p>
           
-          <div className="rounded-xl overflow-hidden border border-gray-100 w-full shadow-sm">
+          <div className="rounded-xl overflow-hidden border border-gray-100 w-full shadow-sm mb-4">
             {/* Custom Compact Table */}
             <table className="w-full border-collapse table-fixed">
               <thead>
@@ -258,6 +277,10 @@ const PrintableView: React.FC<Props> = ({ quotation, state }) => {
           </div>
         </div>
         
+        <div className="mt-auto flex justify-end px-10 pb-4">
+          <CompanySealBlock imageBottomClass="-bottom-2" />
+        </div>
+
         <PageFooter pageNum={2} />
       </div>
 
@@ -365,7 +388,7 @@ const PrintableView: React.FC<Props> = ({ quotation, state }) => {
           </div>
 
           {/* Documentation Checklist */}
-          <div className="bg-gray-50 border border-gray-100 p-8 rounded-3xl mb-8 w-full shadow-inner">
+          <div className="bg-gray-50 border border-gray-100 p-6 rounded-3xl mb-2 w-full shadow-inner">
             <h4 className="text-[10pt] font-black text-red-600 uppercase tracking-[0.3em] mb-6 text-center">REQUIRED DOCUMENTS FOR APPLY SUBSIDY</h4>
             <div className="grid grid-cols-2 gap-x-12 gap-y-4 text-[9pt] font-bold text-gray-700 mb-6">
               <p className="flex items-center gap-3"><span className="w-2 h-2 rounded-full bg-red-500 shadow-sm"></span> Mobile Number</p>
@@ -390,29 +413,8 @@ const PrintableView: React.FC<Props> = ({ quotation, state }) => {
           </div>
 
           {/* Legal Signatures */}
-          <div className="mt-auto pt-10 flex justify-between px-10 border-t-2 border-gray-50 w-full">
-            <div className="text-center w-60">
-              <div className="h-20 border-b border-gray-100 mb-4 flex items-end justify-center">
-                {/* Client Acceptance Seal removed */}
-              </div>
-              <p className="text-[10.5pt] font-black uppercase text-gray-900 tracking-[0.1em] pt-2 border-t-2 border-black">Authorized Customer</p>
-              <p className="text-[7.5pt] text-gray-400 font-black uppercase mt-2 tracking-[0.2em]">Signature & Full Name</p>
-            </div>
-            <div className="text-center w-60">
-              <div className="h-24 border-b border-gray-100 mb-4 relative">
-                 {state.company.seal ? (
-                   <img 
-                     src={state.company.seal} 
-                     alt="Seal" 
-                     className="absolute bottom-4 left-1/2 -translate-x-1/2 h-24 w-auto object-contain z-10" 
-                   />
-                 ) : (
-                   <span className="absolute bottom-2 left-1/2 -translate-x-1/2 text-[7pt] text-red-100 uppercase font-black tracking-widest whitespace-nowrap">Kondaas Official Seal</span>
-                 )}
-              </div>
-              <p className="text-[10.5pt] font-black uppercase text-red-600 tracking-[0.1em] pt-2 border-t-2 border-red-600">For {state.company.name}</p>
-              <p className="text-[7.5pt] text-gray-400 font-black uppercase mt-2 tracking-[0.2em]">Authorized Signatory</p>
-            </div>
+          <div className="pt-1 flex justify-end px-10 w-full mt-0">
+            <CompanySealBlock imageBottomClass="bottom-4" />
           </div>
         </div>
         
