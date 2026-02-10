@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { AppState, Quotation, User } from '../types';
-import { Edit3, Trash2, Search, Printer, FileSpreadsheet, Download } from 'lucide-react';
+import { Edit3, Trash2, Search, Printer, FileSpreadsheet, Download, FileDown } from 'lucide-react';
 import { format } from 'date-fns';
 import * as XLSX from 'xlsx';
 
@@ -18,6 +18,8 @@ const AdminPanel: React.FC<Props> = ({ state, currentUser, onEdit, onPrint, onDo
   const [searchTerm, setSearchTerm] = React.useState('');
 
   const isAdmin = currentUser.role === 'admin';
+  // Standard users cannot edit or delete from dashboard
+  const canModifyQuotes = currentUser.role === 'admin' || currentUser.role === 'TL';
 
   // Filter based on User Role AND Search Term
   const filteredQuotes = state.quotations.filter(q => {
@@ -59,6 +61,38 @@ const AdminPanel: React.FC<Props> = ({ state, currentUser, onEdit, onPrint, onDo
     XLSX.writeFile(wb, `${q.id}_Solar_Quotation.xlsx`);
   };
 
+  const exportDashboardReport = () => {
+    // Export ALL quotations in the state, regardless of search filter
+    const reportData = state.quotations.map(q => ({
+      'Quote ID': q.id,
+      'Date': q.date,
+      'Customer Name': q.customerName,
+      'Mobile': q.mobile,
+      'Email': q.email,
+      'Discom No': q.discomNumber,
+      'Address': q.address,
+      'System Description': q.systemDescription,
+      'System Cost (₹)': q.pricing.onGridSystemCost,
+      'Subsidy (₹)': q.pricing.subsidyAmount,
+      'KSEB Charges (₹)': q.pricing.ksebCharges,
+      'Structure Cost (₹)': q.pricing.customizedStructureCost,
+      'Addtl Material (₹)': q.pricing.additionalMaterialCost,
+      'Total Net Cost (₹)': (q.pricing.onGridSystemCost - q.pricing.subsidyAmount),
+      'Created By': q.createdByName,
+      'Created By ID': q.createdBy
+    }));
+
+    const wb = XLSX.utils.book_new();
+    const ws = XLSX.utils.json_to_sheet(reportData);
+    
+    // Set column widths
+    const wscols = Object.keys(reportData[0] || {}).map(k => ({ wch: 20 }));
+    ws['!cols'] = wscols;
+
+    XLSX.utils.book_append_sheet(wb, ws, "Master Report");
+    XLSX.writeFile(wb, `Master_Solar_Quotes_Report_${format(new Date(), 'yyyy-MM-dd_HHmm')}.xlsx`);
+  };
+
   return (
     <div className="space-y-6">
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
@@ -66,15 +100,27 @@ const AdminPanel: React.FC<Props> = ({ state, currentUser, onEdit, onPrint, onDo
           <h2 className="text-2xl font-bold text-gray-900">Quotation Dashboard</h2>
           <p className="text-gray-500">Welcome, {currentUser.name}</p>
         </div>
-        <div className="relative w-full md:w-96">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-5 h-5" />
-          <input 
-            type="text" 
-            placeholder="Search by ID or Customer Name..." 
-            className="pl-10 w-full p-2 border border-gray-300 rounded-lg focus:ring-red-500 focus:border-red-500"
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-          />
+        
+        <div className="flex flex-col md:flex-row items-center gap-3 w-full md:w-auto">
+          {isAdmin && (
+            <button 
+              onClick={exportDashboardReport}
+              className="w-full md:w-auto bg-green-700 text-white px-4 py-2 rounded-lg font-bold flex items-center justify-center hover:bg-green-800 transition-colors shadow-sm whitespace-nowrap text-sm"
+            >
+              <FileDown className="w-4 h-4 mr-2" /> Export All Data
+            </button>
+          )}
+          
+          <div className="relative w-full md:w-80">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-5 h-5" />
+            <input 
+              type="text" 
+              placeholder="Search by ID or Customer Name..." 
+              className="pl-10 w-full p-2 border border-gray-300 rounded-lg focus:ring-red-500 focus:border-red-500"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+            />
+          </div>
         </div>
       </div>
 
@@ -116,12 +162,18 @@ const AdminPanel: React.FC<Props> = ({ state, currentUser, onEdit, onPrint, onDo
                     <button onClick={() => exportToExcel(q)} className="text-green-600 hover:bg-green-50 p-2 rounded-lg" title="Export Excel">
                       <FileSpreadsheet className="w-5 h-5" />
                     </button>
-                    <button onClick={() => onEdit(q)} className="text-gray-600 hover:bg-gray-50 p-2 rounded-lg" title="Edit">
-                      <Edit3 className="w-5 h-5" />
-                    </button>
-                    <button onClick={() => { if(confirm('Delete this quotation?')) onDelete(q.id); }} className="text-red-600 hover:bg-red-50 p-2 rounded-lg" title="Delete">
-                      <Trash2 className="w-5 h-5" />
-                    </button>
+                    
+                    {canModifyQuotes && (
+                      <button onClick={() => onEdit(q)} className="text-gray-600 hover:bg-gray-50 p-2 rounded-lg" title="Edit">
+                        <Edit3 className="w-5 h-5" />
+                      </button>
+                    )}
+                    
+                    {canModifyQuotes && (
+                      <button onClick={() => { if(confirm('Delete this quotation?')) onDelete(q.id); }} className="text-red-600 hover:bg-red-50 p-2 rounded-lg" title="Delete">
+                        <Trash2 className="w-5 h-5" />
+                      </button>
+                    )}
                   </td>
                 </tr>
               ))}

@@ -74,7 +74,7 @@ export interface ProductDescription {
   defaultBomTemplateId?: string; // Link to BOMTemplate.id
 }
 
-export type UserRole = 'admin' | 'user';
+export type UserRole = 'admin' | 'user' | 'TL';
 
 export interface User {
   id: string;

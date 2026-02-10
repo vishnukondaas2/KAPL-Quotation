@@ -5,7 +5,7 @@ import { AppState, Quotation, BOMTemplate, BOMItem, ProductPricing, ProductDescr
 import AdminPanel from './components/AdminPanel';
 import QuotationForm from './components/QuotationForm';
 import PrintableView from './components/PrintableView';
-import { LogIn, FileText, Settings, LayoutDashboard, PlusCircle, LogOut, Trash2, Plus, Copy, ChevronDown, ChevronUp, Loader2, Link, Users, UserPlus, CheckCircle, AlertCircle } from 'lucide-react';
+import { LogIn, FileText, Settings, LayoutDashboard, PlusCircle, LogOut, Trash2, Plus, Copy, ChevronDown, ChevronUp, Loader2, Link, Users, UserPlus, CheckCircle, AlertCircle, Edit } from 'lucide-react';
 
 declare var html2pdf: any;
 
@@ -337,6 +337,7 @@ const SettingsView: React.FC<{ state: AppState, onUpdate: (s: AppState) => Promi
 
   // User Management State
   const [newUser, setNewUser] = useState<Partial<User>>({ role: 'user', name: '', username: '', password: '' });
+  const [editingUserId, setEditingUserId] = useState<string | null>(null);
 
   const updateSub = async (key: keyof AppState, data: any) => {
     setSaveStatus('saving');
@@ -349,19 +350,32 @@ const SettingsView: React.FC<{ state: AppState, onUpdate: (s: AppState) => Promi
     }
   };
 
-  const handleAddUser = () => {
+  const handleAddOrUpdateUser = () => {
     if(!newUser.name || !newUser.username || !newUser.password) {
       alert("Please fill all user fields");
       return;
     }
-    const user: User = {
-      id: Date.now().toString(),
-      name: newUser.name!,
-      username: newUser.username!,
-      password: newUser.password!,
-      role: (newUser.role as UserRole) || 'user'
-    };
-    updateSub('users', [...state.users, user]);
+    
+    if (editingUserId) {
+        // Update existing user
+        const updatedUsers = state.users.map(u => 
+            u.id === editingUserId 
+            ? { ...u, name: newUser.name!, username: newUser.username!, password: newUser.password!, role: (newUser.role as UserRole) || 'user' }
+            : u
+        );
+        updateSub('users', updatedUsers);
+        setEditingUserId(null);
+    } else {
+        // Add new user
+        const user: User = {
+          id: Date.now().toString(),
+          name: newUser.name!,
+          username: newUser.username!,
+          password: newUser.password!,
+          role: (newUser.role as UserRole) || 'user'
+        };
+        updateSub('users', [...state.users, user]);
+    }
     setNewUser({ role: 'user', name: '', username: '', password: '' });
   };
 
@@ -373,6 +387,21 @@ const SettingsView: React.FC<{ state: AppState, onUpdate: (s: AppState) => Promi
     if(confirm("Delete this user?")) {
       updateSub('users', state.users.filter(u => u.id !== id));
     }
+  };
+
+  const handleEditUser = (user: User) => {
+      setNewUser({
+          name: user.name,
+          username: user.username,
+          password: user.password,
+          role: user.role
+      });
+      setEditingUserId(user.id);
+  };
+
+  const handleCancelEdit = () => {
+      setNewUser({ role: 'user', name: '', username: '', password: '' });
+      setEditingUserId(null);
   };
 
   // ... (Existing handlers for Pricing, Logo, BOM remain same) ...
@@ -523,9 +552,16 @@ const SettingsView: React.FC<{ state: AppState, onUpdate: (s: AppState) => Promi
           <div className="space-y-6">
              <h3 className="text-lg font-bold">User Management</h3>
              
-             {/* Add New User */}
-             <div className="bg-gray-50 p-4 rounded-lg border">
-                <h4 className="text-sm font-bold text-gray-700 mb-3 flex items-center"><UserPlus className="w-4 h-4 mr-2"/> Add New User</h4>
+             {/* Add/Edit User Form */}
+             <div className={`p-4 rounded-lg border transition-colors ${editingUserId ? 'bg-blue-50 border-blue-200' : 'bg-gray-50'}`}>
+                <div className="flex justify-between items-center mb-3">
+                    <h4 className="text-sm font-bold text-gray-700 flex items-center">
+                        <UserPlus className="w-4 h-4 mr-2"/> {editingUserId ? 'Edit User Details' : 'Add New User'}
+                    </h4>
+                    {editingUserId && (
+                        <button onClick={handleCancelEdit} className="text-xs text-red-600 font-bold hover:underline">Cancel Edit</button>
+                    )}
+                </div>
                 <div className="grid grid-cols-1 md:grid-cols-4 gap-4 items-end">
                    <div>
                       <label className="block text-xs font-medium text-gray-500 mb-1">Full Name</label>
@@ -544,9 +580,12 @@ const SettingsView: React.FC<{ state: AppState, onUpdate: (s: AppState) => Promi
                       <div className="flex gap-2">
                         <select className="flex-1 border p-2 rounded bg-white" value={newUser.role} onChange={e => setNewUser({...newUser, role: e.target.value as UserRole})}>
                            <option value="user">User</option>
+                           <option value="TL">TL</option>
                            <option value="admin">Admin</option>
                         </select>
-                        <button onClick={handleAddUser} className="bg-black text-white px-4 py-2 rounded font-bold hover:bg-gray-800">Add</button>
+                        <button onClick={handleAddOrUpdateUser} className={`${editingUserId ? 'bg-blue-600 hover:bg-blue-700' : 'bg-black hover:bg-gray-800'} text-white px-4 py-2 rounded font-bold transition-colors`}>
+                            {editingUserId ? 'Update' : 'Add'}
+                        </button>
                       </div>
                    </div>
                 </div>
@@ -571,12 +610,16 @@ const SettingsView: React.FC<{ state: AppState, onUpdate: (s: AppState) => Promi
                           <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">{u.username}</td>
                           <td className="px-6 py-4 whitespace-nowrap text-sm font-mono text-gray-400">••••••</td>
                           <td className="px-6 py-4 whitespace-nowrap">
-                             <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${u.role === 'admin' ? 'bg-red-100 text-red-800' : 'bg-green-100 text-green-800'}`}>
+                             <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full 
+                                ${u.role === 'admin' ? 'bg-red-100 text-red-800' : 
+                                  u.role === 'TL' ? 'bg-blue-100 text-blue-800' : 
+                                  'bg-green-100 text-green-800'}`}>
                                 {u.role}
                              </span>
                           </td>
-                          <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                             <button onClick={() => handleDeleteUser(u.id)} className="text-red-600 hover:text-red-900"><Trash2 className="w-4 h-4"/></button>
+                          <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium space-x-2">
+                             <button onClick={() => handleEditUser(u)} className="text-blue-600 hover:text-blue-900 p-1 hover:bg-blue-50 rounded"><Edit className="w-4 h-4"/></button>
+                             <button onClick={() => handleDeleteUser(u.id)} className="text-red-600 hover:text-red-900 p-1 hover:bg-red-50 rounded"><Trash2 className="w-4 h-4"/></button>
                           </td>
                        </tr>
                      ))}
@@ -586,6 +629,7 @@ const SettingsView: React.FC<{ state: AppState, onUpdate: (s: AppState) => Promi
           </div>
         )}
 
+        {/* ... (Rest of the render output remains identical) ... */}
         {activeSubTab === 'pricing' && (
           <div className="space-y-6">
             <div className="flex justify-between items-center">

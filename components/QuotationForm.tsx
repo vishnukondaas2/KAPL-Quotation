@@ -36,6 +36,13 @@ const QuotationForm: React.FC<Props> = ({ state, currentUser, editData, onSave, 
     createdByName: editData?.createdByName || currentUser.name
   });
 
+  // Permission Logic
+  // Base Pricing (System Cost, Subsidy, KSEB) -> Admin & TL Only
+  const canEditBasePricing = currentUser.role === 'admin' || currentUser.role === 'TL';
+  
+  // Additional Costs (Structure, Material) -> All Users (Admin, TL, User)
+  const canEditExtras = true;
+
   const handleProductDescriptionChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const selectedName = e.target.value;
     
@@ -161,7 +168,10 @@ const QuotationForm: React.FC<Props> = ({ state, currentUser, editData, onSave, 
         {/* Pricing */}
         <section className="bg-gray-50 p-6 rounded-lg border">
           <div className="flex justify-between items-center mb-6">
-            <h3 className="text-sm font-bold uppercase tracking-wider text-gray-400">Pricing Estimation</h3>
+            <h3 className="text-sm font-bold uppercase tracking-wider text-gray-400">
+               Pricing Estimation
+               {!canEditBasePricing && <span className="ml-2 text-xs bg-gray-200 text-gray-600 px-2 py-0.5 rounded normal-case">Base Rate Locked</span>}
+            </h3>
             {/* Pricing Model Dropdown Removed */}
           </div>
           
@@ -170,45 +180,50 @@ const QuotationForm: React.FC<Props> = ({ state, currentUser, editData, onSave, 
               <label className="block text-xs uppercase font-black text-gray-400 mb-1">On-Grid System Cost (₹)</label>
               <input 
                 type="number"
+                readOnly={!canEditBasePricing}
                 value={formData.pricing.onGridSystemCost}
                 onChange={e => setFormData({ ...formData, pricing: { ...formData.pricing, onGridSystemCost: Number(e.target.value), rooftopPlantCost: Number(e.target.value) } })}
-                className="w-full border p-2 rounded bg-white shadow-inner"
+                className={`w-full border p-2 rounded shadow-inner ${!canEditBasePricing ? 'bg-gray-200 text-gray-600 cursor-not-allowed focus:ring-0' : 'bg-white'}`}
               />
             </div>
             <div>
               <label className="block text-xs uppercase font-black text-gray-400 mb-1">Subsidy Amount (₹)</label>
               <input 
                 type="number"
+                readOnly={!canEditBasePricing}
                 value={formData.pricing.subsidyAmount}
                 onChange={e => setFormData({ ...formData, pricing: { ...formData.pricing, subsidyAmount: Number(e.target.value) } })}
-                className="w-full border p-2 rounded bg-white shadow-inner"
+                className={`w-full border p-2 rounded shadow-inner ${!canEditBasePricing ? 'bg-gray-200 text-gray-600 cursor-not-allowed focus:ring-0' : 'bg-white'}`}
               />
             </div>
             <div>
               <label className="block text-xs uppercase font-black text-gray-400 mb-1">KSEB Charges (INR)</label>
               <input 
                 type="number"
+                readOnly={!canEditBasePricing}
                 value={formData.pricing.ksebCharges}
                 onChange={e => setFormData({ ...formData, pricing: { ...formData.pricing, ksebCharges: Number(e.target.value) } })}
-                className="w-full border p-2 rounded bg-white shadow-inner"
+                className={`w-full border p-2 rounded shadow-inner ${!canEditBasePricing ? 'bg-gray-200 text-gray-600 cursor-not-allowed focus:ring-0' : 'bg-white'}`}
               />
             </div>
             <div>
               <label className="block text-xs uppercase font-black text-gray-400 mb-1">Customized Structure Cost (₹)</label>
               <input 
                 type="number"
+                readOnly={!canEditExtras}
                 value={formData.pricing.customizedStructureCost}
                 onChange={e => setFormData({ ...formData, pricing: { ...formData.pricing, customizedStructureCost: Number(e.target.value) } })}
-                className="w-full border p-2 rounded bg-white shadow-inner"
+                className={`w-full border p-2 rounded shadow-inner ${!canEditExtras ? 'bg-gray-200 text-gray-600 cursor-not-allowed focus:ring-0' : 'bg-white'}`}
               />
             </div>
             <div>
               <label className="block text-xs uppercase font-black text-gray-400 mb-1">Addtl. Material Cost (₹)</label>
               <input 
                 type="number"
+                readOnly={!canEditExtras}
                 value={formData.pricing.additionalMaterialCost}
                 onChange={e => setFormData({ ...formData, pricing: { ...formData.pricing, additionalMaterialCost: Number(e.target.value) } })}
-                className="w-full border p-2 rounded bg-white shadow-inner"
+                className={`w-full border p-2 rounded shadow-inner ${!canEditExtras ? 'bg-gray-200 text-gray-600 cursor-not-allowed focus:ring-0' : 'bg-white'}`}
               />
             </div>
             <div className="bg-black text-white p-6 rounded flex items-center justify-between col-span-1 md:col-span-2 lg:col-span-3">
