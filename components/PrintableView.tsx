@@ -59,7 +59,7 @@ const PrintableView: React.FC<Props> = ({ quotation, state }) => {
             <p>{state.company.email}</p>
             <p className="text-gray-400">{state.company.phone}</p>
             
-            <div className="pt-2 mt-2 border-t border-gray-100 flex flex-col items-end">
+            <div className="pt-2 mt-2 border-t border-gray-100 flex flex-col items-start text-left">
               <span className="text-black font-black uppercase text-[5.5pt] tracking-[0.2em] mb-1">Regional Branches</span>
               <p className="uppercase opacity-80">{state.company.regionalOffice1}</p>
               <p className="uppercase opacity-80">{state.company.regionalOffice2}</p>
@@ -214,31 +214,32 @@ const PrintableView: React.FC<Props> = ({ quotation, state }) => {
       {/* PAGE 2: DETAILED BILL OF MATERIALS */}
       <div className="a4-page">
         <SectionHeader title="Technical Specifications (BOM)" />
-        <p className="text-[9.5pt] text-gray-500 font-medium mb-8 leading-relaxed max-w-3xl px-2">
+        <p className="text-[9.5pt] text-gray-500 font-medium mb-4 leading-relaxed max-w-3xl px-2">
           Fixed Bill of Materials - {quotation.systemDescription}
         </p>
         
         <div className="rounded-xl overflow-hidden border border-gray-100 w-full shadow-sm">
-          <table className="table-modern">
+          {/* Custom Compact Table */}
+          <table className="w-full border-collapse table-fixed">
             <thead>
               <tr className="bg-black text-white">
-                <th className="w-[5%] text-center py-3">#</th>
-                <th className="w-[20%] text-left py-3">Products</th>
-                <th className="w-[8%] text-center py-3">Qty</th>
-                <th className="w-[7%] text-left py-3 pl-2">UOM</th>
-                <th className="w-[30%] text-left py-3">Specification/Type</th>
-                <th className="w-[30%] text-left py-3">Make</th>
+                <th className="w-[5%] text-left py-1.5 px-2 text-[9pt] font-bold uppercase tracking-wider">#</th>
+                <th className="w-[20%] text-left py-1.5 px-2 text-[9pt] font-bold uppercase tracking-wider">Products</th>
+                <th className="w-[10%] text-left py-1.5 px-2 text-[9pt] font-bold uppercase tracking-wider">Qty</th>
+                <th className="w-[10%] text-left py-1.5 px-2 text-[9pt] font-bold uppercase tracking-wider">UOM</th>
+                <th className="w-[27.5%] text-left py-1.5 px-2 text-[9pt] font-bold uppercase tracking-wider">Specification/Type</th>
+                <th className="w-[27.5%] text-left py-1.5 px-2 text-[9pt] font-bold uppercase tracking-wider">Make</th>
               </tr>
             </thead>
-            <tbody className="text-[7pt]">
+            <tbody className="text-[9pt]">
               {quotation.bom.map((item, idx) => (
                 <tr key={item.id} className={idx % 2 === 0 ? 'bg-white' : 'bg-gray-50/50'}>
-                  <td className="text-center text-gray-500 py-2 border-b border-gray-100 align-top">{idx + 1}</td>
-                  <td className="text-gray-900 uppercase tracking-tight font-medium py-2 border-b border-gray-100 align-top whitespace-normal break-words pr-2">{item.product}</td>
-                  <td className="text-center text-gray-900 font-medium py-2 border-b border-gray-100 align-top">{item.quantity}</td>
-                  <td className="text-left text-gray-900 font-medium pl-2 py-2 border-b border-gray-100 align-top whitespace-nowrap">{item.uom}</td>
-                  <td className="text-gray-600 leading-relaxed py-2 border-b border-gray-100 align-top whitespace-normal break-words pr-2">{item.specification}</td>
-                  <td className="text-left text-gray-900 uppercase tracking-tight py-2 border-b border-gray-100 align-top whitespace-normal break-words">{item.make}</td>
+                  <td className="text-left text-gray-500 py-1.5 px-2 border-b border-gray-100 align-top">{idx + 1}</td>
+                  <td className="text-left text-gray-900 font-medium py-1.5 px-2 border-b border-gray-100 align-top whitespace-normal break-words">{item.product}</td>
+                  <td className="text-left text-gray-900 font-medium py-1.5 px-2 border-b border-gray-100 align-top whitespace-nowrap">{item.quantity}</td>
+                  <td className="text-left text-gray-900 font-medium py-1.5 px-2 border-b border-gray-100 align-top whitespace-nowrap">{item.uom}</td>
+                  <td className="text-left text-gray-600 py-1.5 px-2 border-b border-gray-100 align-top whitespace-normal break-words">{item.specification}</td>
+                  <td className="text-left text-gray-900 uppercase py-1.5 px-2 border-b border-gray-100 align-top whitespace-normal break-words">{item.make}</td>
                 </tr>
               ))}
             </tbody>
@@ -267,7 +268,7 @@ const PrintableView: React.FC<Props> = ({ quotation, state }) => {
 
         <div className="mt-auto flex flex-col items-center py-8 w-full opacity-40">
            <div className="opacity-10 select-none text-[60pt] font-black tracking-tighter text-black uppercase leading-none mb-4">KONDAAS</div>
-           <p className="text-[7pt] text-gray-400 font-bold uppercase tracking-[0.6em] border-t border-gray-200 pt-4 w-1/3 text-center">Service Excellence Standard</p>
+           <p className="text-[7pt] text-gray-400 font-bold uppercase tracking-[0.2em] border-t border-gray-200 pt-4 w-3/4 text-center">Truly DEPENDABLE; PROMPT Always; QUALITY First; HIGH on ENERGY</p>
         </div>
         <PageFooter pageNum={3} />
       </div>
