@@ -1,22 +1,25 @@
 
 import React, { useState, useEffect, useRef } from 'react';
 import { fetchFullState, saveSettingsToSupabase, saveQuotationToSupabase, deleteQuotationFromSupabase, INITIAL_STATE } from './store';
-import { AppState, Quotation, BOMTemplate, BOMItem, ProductPricing, ProductDescription } from './types';
+import { AppState, Quotation, BOMTemplate, BOMItem, ProductPricing, ProductDescription, User, UserRole } from './types';
 import AdminPanel from './components/AdminPanel';
 import QuotationForm from './components/QuotationForm';
 import PrintableView from './components/PrintableView';
-import { LogIn, FileText, Settings, LayoutDashboard, PlusCircle, LogOut, Trash2, Plus, Copy, ChevronDown, ChevronUp, Loader2, Link } from 'lucide-react';
+import { LogIn, FileText, Settings, LayoutDashboard, PlusCircle, LogOut, Trash2, Plus, Copy, ChevronDown, ChevronUp, Loader2, Link, Users, UserPlus } from 'lucide-react';
 
 declare var html2pdf: any;
 
 const App: React.FC = () => {
   const [state, setState] = useState<AppState>(INITIAL_STATE);
   const [isLoading, setIsLoading] = useState(true);
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [currentUser, setCurrentUser] = useState<User | null>(null);
+  
   const [activeTab, setActiveTab] = useState<'dashboard' | 'create' | 'settings'>('dashboard');
   const [selectedQuotation, setSelectedQuotation] = useState<Quotation | null>(null);
   const [printingQuote, setPrintingQuote] = useState<Quotation | null>(null);
   const [downloadingQuote, setDownloadingQuote] = useState<Quotation | null>(null);
+  
+  const [loginUsername, setLoginUsername] = useState('');
   const [loginPassword, setLoginPassword] = useState('');
   const pdfRef = useRef<HTMLDivElement>(null);
 
@@ -33,11 +36,20 @@ const App: React.FC = () => {
 
   const handleLogin = (e: React.FormEvent) => {
     e.preventDefault();
-    if (loginPassword === 'admin123') {
-      setIsLoggedIn(true);
+    const user = state.users.find(u => u.username === loginUsername && u.password === loginPassword);
+    
+    if (user) {
+      setCurrentUser(user);
+      setLoginUsername('');
+      setLoginPassword('');
     } else {
-      alert('Invalid password! Hint: admin123');
+      alert('Invalid credentials');
     }
+  };
+
+  const handleLogout = () => {
+    setCurrentUser(null);
+    setActiveTab('dashboard');
   };
 
   const handleCreateQuotation = async (q: Quotation) => {
@@ -163,15 +175,26 @@ const App: React.FC = () => {
     );
   }
 
-  if (!isLoggedIn) {
+  if (!currentUser) {
     return (
       <div className="min-h-screen bg-gray-900 flex items-center justify-center p-4">
         <div className="bg-white rounded-xl shadow-2xl p-8 w-full max-w-md">
           <div className="text-center mb-8">
             <h1 className="text-3xl font-bold text-gray-900">Solar Quote Pro</h1>
-            <p className="text-gray-500 mt-2">Admin Authentication</p>
+            <p className="text-gray-500 mt-2">Login to your account</p>
           </div>
           <form onSubmit={handleLogin} className="space-y-6">
+            <div>
+              <label className="block text-sm font-medium text-gray-700">Username</label>
+              <input 
+                type="text" 
+                value={loginUsername}
+                onChange={(e) => setLoginUsername(e.target.value)}
+                className="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-red-500 focus:border-red-500" 
+                placeholder="Username"
+                required
+              />
+            </div>
             <div>
               <label className="block text-sm font-medium text-gray-700">Password</label>
               <input 
@@ -179,7 +202,7 @@ const App: React.FC = () => {
                 value={loginPassword}
                 onChange={(e) => setLoginPassword(e.target.value)}
                 className="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-red-500 focus:border-red-500" 
-                placeholder="Enter admin password"
+                placeholder="Password"
                 required
               />
             </div>
@@ -190,18 +213,29 @@ const App: React.FC = () => {
               <LogIn className="w-5 h-5 mr-2" /> Login
             </button>
           </form>
+          <div className="mt-4 text-center">
+             <p className="text-xs text-gray-400">Default Admin: admin / admin123</p>
+          </div>
         </div>
       </div>
     );
   }
+
+  const isAdmin = currentUser.role === 'admin';
 
   return (
     <>
       <div className="min-h-screen flex flex-col md:flex-row no-print">
         <aside className="w-full md:w-64 bg-black text-white flex-shrink-0">
           <div className="p-6">
-            <h2 className="text-2xl font-bold text-red-600">KAPL Admin</h2>
-            <p className="text-xs text-gray-400">Solar Quote Manager</p>
+            <h2 className="text-2xl font-bold text-red-600">KAPL {isAdmin ? 'Admin' : 'Sales'}</h2>
+            <div className="mt-2 flex items-center gap-2">
+               <div className="w-8 h-8 rounded-full bg-gray-700 flex items-center justify-center text-xs font-bold">{currentUser.name.charAt(0)}</div>
+               <div className="overflow-hidden">
+                 <p className="text-sm font-medium truncate">{currentUser.name}</p>
+                 <p className="text-xs text-gray-400 capitalize">{currentUser.role}</p>
+               </div>
+            </div>
           </div>
           <nav className="mt-4 px-4 space-y-2">
             <button 
@@ -216,16 +250,18 @@ const App: React.FC = () => {
             >
               <PlusCircle className="w-5 h-5 mr-3" /> Create Quote
             </button>
-            <button 
-              onClick={() => setActiveTab('settings')}
-              className={`w-full flex items-center p-3 rounded-lg transition-colors ${activeTab === 'settings' ? 'bg-red-600 text-white' : 'hover:bg-gray-800 text-gray-400'}`}
-            >
-              <Settings className="w-5 h-5 mr-3" /> Config Panel
-            </button>
+            {isAdmin && (
+              <button 
+                onClick={() => setActiveTab('settings')}
+                className={`w-full flex items-center p-3 rounded-lg transition-colors ${activeTab === 'settings' ? 'bg-red-600 text-white' : 'hover:bg-gray-800 text-gray-400'}`}
+              >
+                <Settings className="w-5 h-5 mr-3" /> Config Panel
+              </button>
+            )}
           </nav>
           <div className="mt-auto p-4">
             <button 
-              onClick={() => setIsLoggedIn(false)}
+              onClick={handleLogout}
               className="w-full flex items-center p-3 rounded-lg text-gray-400 hover:text-white hover:bg-gray-800 transition-colors"
             >
               <LogOut className="w-5 h-5 mr-3" /> Logout
@@ -238,6 +274,7 @@ const App: React.FC = () => {
             {activeTab === 'dashboard' && (
               <AdminPanel 
                 state={state} 
+                currentUser={currentUser}
                 onEdit={editQuotation}
                 onPrint={handlePrint}
                 onDownload={handleDownloadPDF}
@@ -247,13 +284,14 @@ const App: React.FC = () => {
             {activeTab === 'create' && (
               <QuotationForm 
                 state={state} 
+                currentUser={currentUser}
                 editData={selectedQuotation}
                 onSave={handleCreateQuotation}
                 onSaveTemplate={handleSaveTemplate}
                 onCancel={() => setActiveTab('dashboard')}
               />
             )}
-            {activeTab === 'settings' && (
+            {activeTab === 'settings' && isAdmin && (
               <SettingsView 
                 state={state} 
                 onUpdate={handleSettingsUpdate} 
@@ -290,16 +328,46 @@ const App: React.FC = () => {
   );
 };
 
-// ... SettingsView Component remains same but uses new props ...
+// ... SettingsView Component ...
 const SettingsView: React.FC<{ state: AppState, onUpdate: (s: AppState) => void }> = ({ state, onUpdate }) => {
-  const [activeSubTab, setActiveSubTab] = useState<'company' | 'pricing' | 'terms' | 'bank' | 'warranty' | 'bom' | 'products'>('company');
+  const [activeSubTab, setActiveSubTab] = useState<'company' | 'users' | 'pricing' | 'terms' | 'bank' | 'warranty' | 'bom' | 'products'>('company');
   const [editingItemId, setEditingItemId] = useState<string | null>(null);
   const [expandedTemplateId, setExpandedTemplateId] = useState<string | null>(null);
+
+  // User Management State
+  const [newUser, setNewUser] = useState<Partial<User>>({ role: 'user', name: '', username: '', password: '' });
 
   const updateSub = (key: keyof AppState, data: any) => {
     onUpdate({ ...state, [key]: data });
   };
 
+  const handleAddUser = () => {
+    if(!newUser.name || !newUser.username || !newUser.password) {
+      alert("Please fill all user fields");
+      return;
+    }
+    const user: User = {
+      id: Date.now().toString(),
+      name: newUser.name!,
+      username: newUser.username!,
+      password: newUser.password!,
+      role: (newUser.role as UserRole) || 'user'
+    };
+    updateSub('users', [...state.users, user]);
+    setNewUser({ role: 'user', name: '', username: '', password: '' });
+  };
+
+  const handleDeleteUser = (id: string) => {
+    if(state.users.length <= 1) {
+      alert("Cannot delete the last user");
+      return;
+    }
+    if(confirm("Delete this user?")) {
+      updateSub('users', state.users.filter(u => u.id !== id));
+    }
+  };
+
+  // ... (Existing handlers for Pricing, Logo, BOM remain same) ...
   const handleAddPricing = () => {
     const newId = Date.now().toString();
     const newItem: ProductPricing = {
@@ -382,7 +450,7 @@ const SettingsView: React.FC<{ state: AppState, onUpdate: (s: AppState) => void 
   return (
     <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
       <div className="flex border-b border-gray-200 bg-gray-50 overflow-x-auto">
-        {(['company', 'pricing', 'terms', 'bank', 'warranty', 'bom', 'products'] as const).map(tab => (
+        {(['company', 'users', 'pricing', 'terms', 'bank', 'warranty', 'bom', 'products'] as const).map(tab => (
           <button
             key={tab}
             onClick={() => setActiveSubTab(tab)}
@@ -433,6 +501,73 @@ const SettingsView: React.FC<{ state: AppState, onUpdate: (s: AppState) => void 
               <div><label className="block text-xs uppercase font-black text-gray-400 mb-1">GSTIN</label><input value={state.company.gstin} onChange={e => updateSub('company', { ...state.company, gstin: e.target.value })} className="w-full border p-2 rounded" /></div>
               <div><label className="block text-xs uppercase font-black text-gray-400 mb-1">Contact Phone</label><input value={state.company.phone} onChange={e => updateSub('company', { ...state.company, phone: e.target.value })} className="w-full border p-2 rounded" /></div>
             </div>
+          </div>
+        )}
+
+        {activeSubTab === 'users' && (
+          <div className="space-y-6">
+             <h3 className="text-lg font-bold">User Management</h3>
+             
+             {/* Add New User */}
+             <div className="bg-gray-50 p-4 rounded-lg border">
+                <h4 className="text-sm font-bold text-gray-700 mb-3 flex items-center"><UserPlus className="w-4 h-4 mr-2"/> Add New User</h4>
+                <div className="grid grid-cols-1 md:grid-cols-4 gap-4 items-end">
+                   <div>
+                      <label className="block text-xs font-medium text-gray-500 mb-1">Full Name</label>
+                      <input className="w-full border p-2 rounded" value={newUser.name} onChange={e => setNewUser({...newUser, name: e.target.value})} placeholder="e.g. John Doe" />
+                   </div>
+                   <div>
+                      <label className="block text-xs font-medium text-gray-500 mb-1">Username</label>
+                      <input className="w-full border p-2 rounded" value={newUser.username} onChange={e => setNewUser({...newUser, username: e.target.value})} placeholder="login_id" />
+                   </div>
+                   <div>
+                      <label className="block text-xs font-medium text-gray-500 mb-1">Password</label>
+                      <input className="w-full border p-2 rounded" value={newUser.password} onChange={e => setNewUser({...newUser, password: e.target.value})} placeholder="secret" />
+                   </div>
+                   <div>
+                      <label className="block text-xs font-medium text-gray-500 mb-1">Role</label>
+                      <div className="flex gap-2">
+                        <select className="flex-1 border p-2 rounded bg-white" value={newUser.role} onChange={e => setNewUser({...newUser, role: e.target.value as UserRole})}>
+                           <option value="user">User</option>
+                           <option value="admin">Admin</option>
+                        </select>
+                        <button onClick={handleAddUser} className="bg-black text-white px-4 py-2 rounded font-bold hover:bg-gray-800">Add</button>
+                      </div>
+                   </div>
+                </div>
+             </div>
+
+             {/* User List */}
+             <div className="border rounded-lg overflow-hidden">
+                <table className="min-w-full divide-y divide-gray-200">
+                  <thead className="bg-gray-50">
+                    <tr>
+                       <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Name</th>
+                       <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Username</th>
+                       <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Password</th>
+                       <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Role</th>
+                       <th className="px-6 py-3 text-right"></th>
+                    </tr>
+                  </thead>
+                  <tbody className="bg-white divide-y divide-gray-200">
+                     {state.users.map(u => (
+                       <tr key={u.id}>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm font-bold text-gray-900">{u.name}</td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">{u.username}</td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm font-mono text-gray-400">••••••</td>
+                          <td className="px-6 py-4 whitespace-nowrap">
+                             <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${u.role === 'admin' ? 'bg-red-100 text-red-800' : 'bg-green-100 text-green-800'}`}>
+                                {u.role}
+                             </span>
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                             <button onClick={() => handleDeleteUser(u.id)} className="text-red-600 hover:text-red-900"><Trash2 className="w-4 h-4"/></button>
+                          </td>
+                       </tr>
+                     ))}
+                  </tbody>
+                </table>
+             </div>
           </div>
         )}
 

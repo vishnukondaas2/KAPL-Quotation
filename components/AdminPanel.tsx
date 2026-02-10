@@ -1,29 +1,41 @@
 
 import React from 'react';
-import { AppState, Quotation } from '../types';
+import { AppState, Quotation, User } from '../types';
 import { Edit3, Trash2, Search, Printer, FileSpreadsheet, Download } from 'lucide-react';
 import { format } from 'date-fns';
 import * as XLSX from 'xlsx';
 
 interface Props {
   state: AppState;
+  currentUser: User;
   onEdit: (q: Quotation) => void;
   onPrint: (q: Quotation) => void;
   onDownload: (q: Quotation) => void;
   onDelete: (id: string) => void;
 }
 
-const AdminPanel: React.FC<Props> = ({ state, onEdit, onPrint, onDownload, onDelete }) => {
+const AdminPanel: React.FC<Props> = ({ state, currentUser, onEdit, onPrint, onDownload, onDelete }) => {
   const [searchTerm, setSearchTerm] = React.useState('');
 
-  const filteredQuotes = state.quotations.filter(q => 
-    q.id.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    q.customerName.toLowerCase().includes(searchTerm.toLowerCase())
-  ).sort((a,b) => b.id.localeCompare(a.id));
+  const isAdmin = currentUser.role === 'admin';
+
+  // Filter based on User Role AND Search Term
+  const filteredQuotes = state.quotations.filter(q => {
+    // Permission Filter: Admins see all, Users see their own
+    const permissionMatch = isAdmin ? true : q.createdBy === currentUser.id;
+    
+    // Search Filter
+    const searchMatch = 
+      q.id.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      q.customerName.toLowerCase().includes(searchTerm.toLowerCase());
+      
+    return permissionMatch && searchMatch;
+  }).sort((a,b) => b.id.localeCompare(a.id));
 
   const exportToExcel = (q: Quotation) => {
     const pricingData = [
       ['Quotation No', q.id],
+      ['Created By', q.createdByName || 'System'],
       ['Customer', q.customerName],
       ['Date', q.date],
       [],
@@ -52,7 +64,7 @@ const AdminPanel: React.FC<Props> = ({ state, onEdit, onPrint, onDownload, onDel
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div>
           <h2 className="text-2xl font-bold text-gray-900">Quotation Dashboard</h2>
-          <p className="text-gray-500">View and manage all your solar proposals</p>
+          <p className="text-gray-500">Welcome, {currentUser.name}</p>
         </div>
         <div className="relative w-full md:w-96">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-5 h-5" />
@@ -75,6 +87,7 @@ const AdminPanel: React.FC<Props> = ({ state, onEdit, onPrint, onDownload, onDel
                 <th className="px-6 py-4 text-left">Date</th>
                 <th className="px-6 py-4 text-left">Customer</th>
                 <th className="px-6 py-4 text-left">Capacity</th>
+                {isAdmin && <th className="px-6 py-4 text-left">Created By</th>}
                 <th className="px-6 py-4 text-right">Actions</th>
               </tr>
             </thead>
@@ -88,6 +101,11 @@ const AdminPanel: React.FC<Props> = ({ state, onEdit, onPrint, onDownload, onDel
                     <div className="text-xs text-gray-500">{q.mobile}</div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">{q.systemDescription}</td>
+                  {isAdmin && (
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-800">
+                      <span className="bg-gray-100 px-2 py-1 rounded text-xs font-bold border">{q.createdByName || 'Unknown'}</span>
+                    </td>
+                  )}
                   <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium space-x-1">
                     <button onClick={() => onDownload(q)} className="text-indigo-600 hover:bg-indigo-50 p-2 rounded-lg" title="Download PDF">
                       <Download className="w-5 h-5" />
@@ -109,7 +127,7 @@ const AdminPanel: React.FC<Props> = ({ state, onEdit, onPrint, onDownload, onDel
               ))}
               {filteredQuotes.length === 0 && (
                 <tr>
-                  <td colSpan={5} className="px-6 py-10 text-center text-gray-400">No quotations found.</td>
+                  <td colSpan={isAdmin ? 6 : 5} className="px-6 py-10 text-center text-gray-400">No quotations found.</td>
                 </tr>
               )}
             </tbody>

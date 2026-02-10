@@ -1,6 +1,6 @@
 
 import { supabase } from './supabaseClient';
-import { AppState, Term, BOMItem, ProductPricing, Quotation, ProductDescription, BOMTemplate } from './types';
+import { AppState, Term, BOMItem, ProductPricing, Quotation, ProductDescription, BOMTemplate, User } from './types';
 
 // Default Constants (Keep these for fallbacks)
 const DEFAULT_TERMS: Term[] = [
@@ -44,6 +44,16 @@ const DEFAULT_PRICING: ProductPricing[] = [
   }
 ];
 
+const DEFAULT_USERS: User[] = [
+  {
+    id: 'admin-01',
+    name: 'Administrator',
+    username: 'admin',
+    password: 'admin123', // In a real app, use hasing. For this requirement, simple storage.
+    role: 'admin'
+  }
+];
+
 export const INITIAL_STATE: AppState = {
   company: {
     name: 'Kondaas Automation Pvt Ltd',
@@ -84,6 +94,7 @@ export const INITIAL_STATE: AppState = {
     { id: '2', name: '5kW ON-GRID SOLAR POWER GENERATING SYSTEM', defaultPricingId: 'p5kw', defaultBomTemplateId: '' },
     { id: '3', name: '10kW ON-GRID SOLAR POWER GENERATING SYSTEM', defaultPricingId: '', defaultBomTemplateId: '' }
   ],
+  users: DEFAULT_USERS,
   quotations: [],
   nextId: 1000
 };
@@ -156,6 +167,7 @@ export const fetchFullState = async (): Promise<AppState> => {
       terms: !isArrayEmpty(settings.terms) ? settings.terms : INITIAL_STATE.terms,
       bomTemplates: !isArrayEmpty(settings.bom_templates) ? settings.bom_templates : INITIAL_STATE.bomTemplates,
       productDescriptions: productDescs,
+      users: !isArrayEmpty(settings.users) ? settings.users : INITIAL_STATE.users,
       quotations: parsedQuotes,
       nextId: maxId + 1
     };
@@ -176,7 +188,8 @@ export const saveSettingsToSupabase = async (state: AppState) => {
       warranty: state.warranty,
       terms: state.terms,
       bom_templates: state.bomTemplates,
-      product_descriptions: state.productDescriptions
+      product_descriptions: state.productDescriptions,
+      users: state.users
     })
     .eq('singleton_key', 'global');
 

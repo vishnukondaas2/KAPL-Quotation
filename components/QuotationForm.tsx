@@ -1,17 +1,18 @@
 
 import React, { useState, useEffect } from 'react';
-import { AppState, Quotation, BOMItem, BOMTemplate, ProductPricing } from '../types';
+import { AppState, Quotation, BOMItem, BOMTemplate, ProductPricing, User } from '../types';
 import { Save, X, Plus, Package } from 'lucide-react';
 
 interface Props {
   state: AppState;
+  currentUser: User;
   editData: Quotation | null;
   onSave: (q: Quotation) => void;
   onSaveTemplate: (name: string, items: BOMItem[]) => void;
   onCancel: () => void;
 }
 
-const QuotationForm: React.FC<Props> = ({ state, editData, onSave, onSaveTemplate, onCancel }) => {
+const QuotationForm: React.FC<Props> = ({ state, currentUser, editData, onSave, onSaveTemplate, onCancel }) => {
   const generateNewId = () => {
     const now = new Date();
     const mm = (now.getMonth() + 1).toString().padStart(2, '0');
@@ -30,7 +31,9 @@ const QuotationForm: React.FC<Props> = ({ state, editData, onSave, onSaveTemplat
     location: editData?.location || '',
     pricing: editData?.pricing || { ...state.productPricing[0] },
     bom: editData?.bom || (state.bomTemplates[0]?.items || []),
-    systemDescription: editData?.systemDescription || (state.productDescriptions[0]?.name || '3kW ON-GRID SOLAR POWER GENERATING SYSTEM')
+    systemDescription: editData?.systemDescription || (state.productDescriptions[0]?.name || '3kW ON-GRID SOLAR POWER GENERATING SYSTEM'),
+    createdBy: editData?.createdBy || currentUser.id,
+    createdByName: editData?.createdByName || currentUser.name
   });
 
   const handleProductDescriptionChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
@@ -76,8 +79,11 @@ const QuotationForm: React.FC<Props> = ({ state, editData, onSave, onSaveTemplat
     <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-8">
       <div className="flex justify-between items-center mb-8 border-b pb-4">
         <h2 className="text-2xl font-bold text-gray-900">{editData ? 'Edit' : 'Create New'} Quotation</h2>
-        <div className="text-lg font-mono text-red-600 bg-red-50 px-4 py-1 rounded-full border border-red-100">
-          {formData.id}
+        <div className="flex flex-col items-end">
+          <div className="text-lg font-mono text-red-600 bg-red-50 px-4 py-1 rounded-full border border-red-100">
+            {formData.id}
+          </div>
+          <span className="text-xs text-gray-400 mt-1">Sales Person: {formData.createdByName}</span>
         </div>
       </div>
 
@@ -243,7 +249,6 @@ const QuotationForm: React.FC<Props> = ({ state, editData, onSave, onSaveTemplat
                     <td className="p-1"><input className="w-full text-sm border-0 bg-transparent focus:ring-0 cursor-default text-gray-700" value={item.quantity} readOnly tabIndex={-1} /></td>
                     <td className="p-1"><input className="w-full text-sm border-0 bg-transparent focus:ring-0 cursor-default text-gray-700" value={item.specification} readOnly tabIndex={-1} /></td>
                     <td className="p-1"><input className="w-full text-sm border-0 bg-transparent focus:ring-0 cursor-default text-gray-700" value={item.make} readOnly tabIndex={-1} /></td>
-                    {/* Delete button removed */}
                   </tr>
                 ))}
                 {formData.bom.length === 0 && (

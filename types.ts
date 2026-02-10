@@ -74,6 +74,16 @@ export interface ProductDescription {
   defaultBomTemplateId?: string; // Link to BOMTemplate.id
 }
 
+export type UserRole = 'admin' | 'user';
+
+export interface User {
+  id: string;
+  name: string; // Display Name (e.g., "John Doe")
+  username: string; // Login ID
+  password: string; 
+  role: UserRole;
+}
+
 export interface Quotation {
   id: string; // KAPL-XXXX
   date: string;
@@ -86,6 +96,8 @@ export interface Quotation {
   pricing: PricingConfig;
   bom: BOMItem[];
   systemDescription: string;
+  createdBy: string; // User ID
+  createdByName: string; // Snapshot of User Name
 }
 
 export interface AppState {
@@ -95,7 +107,8 @@ export interface AppState {
   warranty: WarrantyConfig;
   terms: Term[];
   bomTemplates: BOMTemplate[];
-  productDescriptions: ProductDescription[]; // Changed from string[] to object array
+  productDescriptions: ProductDescription[];
+  users: User[]; // List of registered users
   quotations: Quotation[];
   nextId: number;
 }
