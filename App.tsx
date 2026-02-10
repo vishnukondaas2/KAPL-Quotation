@@ -118,7 +118,7 @@ const App: React.FC = () => {
       const element = pdfRef.current;
       const opt = {
         margin: 0,
-        filename: `${q.id}_Solar_Quotation.pdf`,
+        filename: `${q.customerName}_${q.discomNumber || 'NA'}_${q.id}.pdf`,
         image: { type: 'jpeg', quality: 0.8 }, 
         html2canvas: { 
           scale: 2, 

@@ -27,18 +27,27 @@ const PrintableView: React.FC<Props> = ({ quotation, state }) => {
     </div>
   );
 
+  // Logo component for consistent placement on every page
+  const PageLogo = () => (
+    state.company.logo ? (
+      <img 
+        src={state.company.logo} 
+        alt="Logo" 
+        className="absolute top-4 left-5 h-12 w-auto object-contain z-20" 
+      />
+    ) : null
+  );
+
   return (
     <div className="pdf-container">
       {/* PAGE 1: EXECUTIVE SUMMARY & PRICING */}
-      <div className="a4-page">
+      <div className="a4-page relative">
+        <PageLogo />
+        
         {/* Identity Block */}
-        <div className="flex justify-between items-start border-b-2 border-black pb-6 mb-6 w-full">
-          <div className="flex flex-col gap-3 items-start flex-1">
-            {state.company.logo ? (
-              <img src={state.company.logo} alt="Logo" className="h-11 w-auto object-contain" />
-            ) : (
-              <div className="w-10 h-10 bg-red-600 flex items-center justify-center text-white font-black text-xs rounded shadow-sm">KAPL</div>
-            )}
+        <div className="flex justify-between items-start border-b-2 border-black pb-6 mb-6 w-full mt-4">
+          <div className="flex flex-col gap-1 items-start flex-1 pt-2">
+            {/* Logo removed from flow, handled by PageLogo */}
             <div className="flex-1">
               <h1 className="text-[14pt] font-[900] text-black leading-none uppercase tracking-tighter whitespace-nowrap">
                 {state.company.name}
@@ -212,58 +221,64 @@ const PrintableView: React.FC<Props> = ({ quotation, state }) => {
       </div>
 
       {/* PAGE 2: DETAILED BILL OF MATERIALS */}
-      <div className="a4-page">
-        <SectionHeader title="Technical Specifications (BOM)" />
-        <p className="text-[9.5pt] text-gray-500 font-medium mb-4 leading-relaxed max-w-3xl px-2">
-          Fixed Bill of Materials - {quotation.systemDescription}
-        </p>
-        
-        <div className="rounded-xl overflow-hidden border border-gray-100 w-full shadow-sm">
-          {/* Custom Compact Table */}
-          <table className="w-full border-collapse table-fixed">
-            <thead>
-              <tr className="bg-black text-white">
-                <th className="w-[5%] text-left py-1.5 px-2 text-[9pt] font-bold uppercase tracking-wider">#</th>
-                <th className="w-[20%] text-left py-1.5 px-2 text-[9pt] font-bold uppercase tracking-wider">Products</th>
-                <th className="w-[10%] text-left py-1.5 px-2 text-[9pt] font-bold uppercase tracking-wider">Qty</th>
-                <th className="w-[10%] text-left py-1.5 px-2 text-[9pt] font-bold uppercase tracking-wider">UOM</th>
-                <th className="w-[27.5%] text-left py-1.5 px-2 text-[9pt] font-bold uppercase tracking-wider">Specification/Type</th>
-                <th className="w-[27.5%] text-left py-1.5 px-2 text-[9pt] font-bold uppercase tracking-wider">Make</th>
-              </tr>
-            </thead>
-            <tbody className="text-[9pt]">
-              {quotation.bom.map((item, idx) => (
-                <tr key={item.id} className={idx % 2 === 0 ? 'bg-white' : 'bg-gray-50/50'}>
-                  <td className="text-left text-gray-500 py-1.5 px-2 border-b border-gray-100 align-top">{idx + 1}</td>
-                  <td className="text-left text-gray-900 font-medium py-1.5 px-2 border-b border-gray-100 align-top whitespace-normal break-words">{item.product}</td>
-                  <td className="text-left text-gray-900 font-medium py-1.5 px-2 border-b border-gray-100 align-top whitespace-nowrap">{item.quantity}</td>
-                  <td className="text-left text-gray-900 font-medium py-1.5 px-2 border-b border-gray-100 align-top whitespace-nowrap">{item.uom}</td>
-                  <td className="text-left text-gray-600 py-1.5 px-2 border-b border-gray-100 align-top whitespace-normal break-words">{item.specification}</td>
-                  <td className="text-left text-gray-900 uppercase py-1.5 px-2 border-b border-gray-100 align-top whitespace-normal break-words">{item.make}</td>
+      <div className="a4-page relative">
+        <PageLogo />
+        <div className="pt-6">
+          <SectionHeader title="Technical Specifications (BOM)" />
+          <p className="text-[9.5pt] text-gray-500 font-medium mb-4 leading-relaxed max-w-3xl px-2">
+            Fixed Bill of Materials - {quotation.systemDescription}
+          </p>
+          
+          <div className="rounded-xl overflow-hidden border border-gray-100 w-full shadow-sm">
+            {/* Custom Compact Table */}
+            <table className="w-full border-collapse table-fixed">
+              <thead>
+                <tr className="bg-black text-white">
+                  <th className="w-[5%] text-left py-1.5 px-2 text-[9pt] font-bold uppercase tracking-wider">#</th>
+                  <th className="w-[20%] text-left py-1.5 px-2 text-[9pt] font-bold uppercase tracking-wider">Products</th>
+                  <th className="w-[10%] text-left py-1.5 px-2 text-[9pt] font-bold uppercase tracking-wider">Qty</th>
+                  <th className="w-[10%] text-left py-1.5 px-2 text-[9pt] font-bold uppercase tracking-wider">UOM</th>
+                  <th className="w-[27.5%] text-left py-1.5 px-2 text-[9pt] font-bold uppercase tracking-wider">Specification/Type</th>
+                  <th className="w-[27.5%] text-left py-1.5 px-2 text-[9pt] font-bold uppercase tracking-wider">Make</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody className="text-[9pt]">
+                {quotation.bom.map((item, idx) => (
+                  <tr key={item.id} className={idx % 2 === 0 ? 'bg-white' : 'bg-gray-50/50'}>
+                    <td className="text-left text-gray-500 py-1.5 px-2 border-b border-gray-100 align-top">{idx + 1}</td>
+                    <td className="text-left text-gray-900 font-medium py-1.5 px-2 border-b border-gray-100 align-top whitespace-normal break-words">{item.product}</td>
+                    <td className="text-left text-gray-900 font-medium py-1.5 px-2 border-b border-gray-100 align-top whitespace-nowrap">{item.quantity}</td>
+                    <td className="text-left text-gray-900 font-medium py-1.5 px-2 border-b border-gray-100 align-top whitespace-nowrap">{item.uom}</td>
+                    <td className="text-left text-gray-600 py-1.5 px-2 border-b border-gray-100 align-top whitespace-normal break-words">{item.specification}</td>
+                    <td className="text-left text-gray-900 uppercase py-1.5 px-2 border-b border-gray-100 align-top whitespace-normal break-words">{item.make}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         </div>
         
         <PageFooter pageNum={2} />
       </div>
 
       {/* PAGE 3: SERVICE TERMS */}
-      <div className="a4-page">
-        <SectionHeader title="Terms and Conditions" />
-        
-        <div className="flex flex-col gap-2 px-4 w-full mt-4">
-          {activeTerms.map((term, idx) => (
-            <div key={term.id} className="flex gap-4 items-start">
-              <span className="flex-shrink-0 text-[9pt] font-bold text-gray-900 mt-0.5">
-                {idx + 1}.
-              </span>
-              <p className="text-[9pt] text-gray-700 font-normal leading-snug flex-1 text-justify">
-                {term.text}
-              </p>
-            </div>
-          ))}
+      <div className="a4-page relative">
+        <PageLogo />
+        <div className="pt-6">
+          <SectionHeader title="Terms and Conditions" />
+          
+          <div className="flex flex-col gap-2 px-4 w-full mt-4">
+            {activeTerms.map((term, idx) => (
+              <div key={term.id} className="flex gap-4 items-start">
+                <span className="flex-shrink-0 text-[9pt] font-bold text-gray-900 mt-0.5">
+                  {idx + 1}.
+                </span>
+                <p className="text-[9pt] text-gray-700 font-normal leading-snug flex-1 text-justify">
+                  {term.text}
+                </p>
+              </div>
+            ))}
+          </div>
         </div>
 
         <div className="mt-auto flex flex-col items-center py-8 w-full opacity-40">
@@ -274,126 +289,133 @@ const PrintableView: React.FC<Props> = ({ quotation, state }) => {
       </div>
 
       {/* PAGE 4: PROJECT FULFILLMENT */}
-      <div className="a4-page">
-        <SectionHeader title="Execution & Compliance" />
+      <div className="a4-page relative">
+        <PageLogo />
+        <div className="pt-6">
+          <SectionHeader title="Execution & Compliance" />
 
-        <div className="grid grid-cols-5 gap-6 mb-8 w-full">
-          {/* Bank Details */}
-          <div className="modern-card border-t-4 border-red-600 shadow-sm flex flex-col col-span-3">
-            <h4 className="text-[7pt] font-black uppercase tracking-[0.25em] mb-4 text-red-600 text-center border-b border-red-50 pb-2">Company Bank Account Details</h4>
-            <div className="space-y-2 text-[10pt] font-bold">
-              <div className="flex justify-between border-b border-gray-50 pb-1">
-                <span className="text-gray-400 uppercase text-[7.5pt] font-black tracking-widest">Account Holder</span>
-                <span className="text-black text-right leading-none max-w-[60%] truncate">{state.bank.companyName}</span>
-              </div>
-              <div className="flex justify-between border-b border-gray-50 pb-1">
-                <span className="text-gray-400 uppercase text-[7.5pt] font-black tracking-widest">Banking Partner</span>
-                <div className="text-right">
-                   <span className="text-black block leading-none">{state.bank.bankName}</span>
-                   {state.bank.branch && <span className="text-[8pt] text-gray-400 uppercase">{state.bank.branch}</span>}
-                </div>
-              </div>
-              <div className="flex justify-between border-b border-gray-50 pb-1">
-                <span className="text-gray-400 uppercase text-[7.5pt] font-black tracking-widest">Account Number</span>
-                <span className="font-black text-black tracking-[0.15em]">{state.bank.accountNumber}</span>
-              </div>
-              <div className="flex justify-between border-b border-gray-50 pb-1">
-                <span className="text-gray-400 uppercase text-[7.5pt] font-black tracking-widest">IFSC Code</span>
-                <span className="font-black text-red-600">{state.bank.ifsc}</span>
-              </div>
-              {state.bank.pan && (
+          <div className="grid grid-cols-5 gap-6 mb-8 w-full">
+            {/* Bank Details */}
+            <div className="modern-card border-t-4 border-red-600 shadow-sm flex flex-col col-span-3">
+              <h4 className="text-[7pt] font-black uppercase tracking-[0.25em] mb-4 text-red-600 text-center border-b border-red-50 pb-2">Company Bank Account Details</h4>
+              <div className="space-y-2 text-[10pt] font-bold">
                 <div className="flex justify-between border-b border-gray-50 pb-1">
-                  <span className="text-gray-400 uppercase text-[7.5pt] font-black tracking-widest">PAN Number</span>
-                  <span className="text-black text-[9pt]">{state.bank.pan}</span>
+                  <span className="text-gray-400 uppercase text-[7.5pt] font-black tracking-widest">Account Holder</span>
+                  <span className="text-black text-right leading-none max-w-[60%] truncate">{state.bank.companyName}</span>
                 </div>
-              )}
-              {state.bank.gstNumber && (
                 <div className="flex justify-between border-b border-gray-50 pb-1">
-                  <span className="text-gray-400 uppercase text-[7.5pt] font-black tracking-widest">GSTIN</span>
-                  <span className="text-gray-700 text-[9pt]">{state.bank.gstNumber}</span>
-                </div>
-              )}
-              {state.bank.address && (
-                <div className="flex justify-between border-b border-gray-50 pb-1">
-                  <span className="text-gray-400 uppercase text-[7.5pt] font-black tracking-widest">Bank Address</span>
-                  <span className="text-black text-right text-[8pt] max-w-[60%] leading-tight">{state.bank.address}</span>
-                </div>
-              )}
-              <div className="mt-3 text-center p-2 bg-white border border-red-50 rounded-xl shadow-inner">
-                 <p className="text-[7.5pt] text-gray-400 uppercase font-black mb-1 tracking-widest">UPI ID</p>
-                 <span className="text-[11pt] font-black text-black">{state.bank.upiId}</span>
-              </div>
-            </div>
-          </div>
-
-          {/* Timeline */}
-          <div className="modern-card bg-black text-white shadow-xl flex flex-col col-span-2">
-            <h4 className="text-[8.5pt] font-black uppercase tracking-[0.25em] mb-7 text-red-500 text-center border-b border-gray-800 pb-3">Project Roadmap</h4>
-            <div className="space-y-8">
-              {[
-                { s: '01', t: 'Delivery', d: '7-10 Days After Advance Payment & KSEB Feasibility Approval' },
-                { s: '02', t: 'Payment', d: '10% Advance, 90% at the time of Material delivery' },
-                { s: '03', t: 'Installation', d: '7-10 Days from 90% Payment Clearance after material delivery' },
-              ].map((t, idx) => (
-                <div key={idx} className="flex gap-5 items-start">
-                  <span className="text-[22pt] font-black text-gray-800 leading-none">{t.s}</span>
-                  <div className="flex-1">
-                    <p className="text-[10.5pt] font-black uppercase tracking-tight leading-none mb-1.5 text-white">{t.t}</p>
-                    <p className="text-[8pt] text-gray-500 font-bold leading-relaxed">{t.d}</p>
+                  <span className="text-gray-400 uppercase text-[7.5pt] font-black tracking-widest">Banking Partner</span>
+                  <div className="text-right">
+                    <span className="text-black block leading-none">{state.bank.bankName}</span>
+                    {state.bank.branch && <span className="text-[8pt] text-gray-400 uppercase">{state.bank.branch}</span>}
                   </div>
                 </div>
-              ))}
+                <div className="flex justify-between border-b border-gray-50 pb-1">
+                  <span className="text-gray-400 uppercase text-[7.5pt] font-black tracking-widest">Account Number</span>
+                  <span className="font-black text-black tracking-[0.15em]">{state.bank.accountNumber}</span>
+                </div>
+                <div className="flex justify-between border-b border-gray-50 pb-1">
+                  <span className="text-gray-400 uppercase text-[7.5pt] font-black tracking-widest">IFSC Code</span>
+                  <span className="font-black text-red-600">{state.bank.ifsc}</span>
+                </div>
+                {state.bank.pan && (
+                  <div className="flex justify-between border-b border-gray-50 pb-1">
+                    <span className="text-gray-400 uppercase text-[7.5pt] font-black tracking-widest">PAN Number</span>
+                    <span className="text-black text-[9pt]">{state.bank.pan}</span>
+                  </div>
+                )}
+                {state.bank.gstNumber && (
+                  <div className="flex justify-between border-b border-gray-50 pb-1">
+                    <span className="text-gray-400 uppercase text-[7.5pt] font-black tracking-widest">GSTIN</span>
+                    <span className="text-gray-700 text-[9pt]">{state.bank.gstNumber}</span>
+                  </div>
+                )}
+                {state.bank.address && (
+                  <div className="flex justify-between border-b border-gray-50 pb-1">
+                    <span className="text-gray-400 uppercase text-[7.5pt] font-black tracking-widest">Bank Address</span>
+                    <span className="text-black text-right text-[8pt] max-w-[60%] leading-tight">{state.bank.address}</span>
+                  </div>
+                )}
+                <div className="mt-3 text-center p-2 bg-white border border-red-50 rounded-xl shadow-inner">
+                  <p className="text-[7.5pt] text-gray-400 uppercase font-black mb-1 tracking-widest">UPI ID</p>
+                  <span className="text-[11pt] font-black text-black">{state.bank.upiId}</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Timeline */}
+            <div className="modern-card bg-black text-white shadow-xl flex flex-col col-span-2">
+              <h4 className="text-[8.5pt] font-black uppercase tracking-[0.25em] mb-7 text-red-500 text-center border-b border-gray-800 pb-3">Project Roadmap</h4>
+              <div className="space-y-8">
+                {[
+                  { s: '01', t: 'Delivery', d: '7-10 Days After Advance Payment & KSEB Feasibility Approval' },
+                  { s: '02', t: 'Payment', d: '10% Advance, 90% at the time of Material delivery' },
+                  { s: '03', t: 'Installation', d: '7-10 Days from 90% Payment Clearance after material delivery' },
+                ].map((t, idx) => (
+                  <div key={idx} className="flex gap-5 items-start">
+                    <span className="text-[22pt] font-black text-gray-800 leading-none">{t.s}</span>
+                    <div className="flex-1">
+                      <p className="text-[10.5pt] font-black uppercase tracking-tight leading-none mb-1.5 text-white">{t.t}</p>
+                      <p className="text-[8pt] text-gray-500 font-bold leading-relaxed">{t.d}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+
+          {/* Documentation Checklist */}
+          <div className="bg-gray-50 border border-gray-100 p-8 rounded-3xl mb-8 w-full shadow-inner">
+            <h4 className="text-[10pt] font-black text-red-600 uppercase tracking-[0.3em] mb-6 text-center">REQUIRED DOCUMENTS FOR APPLY SUBSIDY</h4>
+            <div className="grid grid-cols-2 gap-x-12 gap-y-4 text-[9pt] font-bold text-gray-700 mb-6">
+              <p className="flex items-center gap-3"><span className="w-2 h-2 rounded-full bg-red-500 shadow-sm"></span> Mobile Number</p>
+              <p className="flex items-center gap-3"><span className="w-2 h-2 rounded-full bg-red-500 shadow-sm"></span> Aadhar Card</p>
+              <p className="flex items-center gap-3"><span className="w-2 h-2 rounded-full bg-red-500 shadow-sm"></span> Email ID</p>
+              <p className="flex items-center gap-3"><span className="w-2 h-2 rounded-full bg-red-500 shadow-sm"></span> Cancelled Cheque / Bank Passbook Front Page</p>
+              <p className="flex items-center gap-3"><span className="w-2 h-2 rounded-full bg-red-500 shadow-sm"></span> Google Map Location (Longitude and Latitude)</p>
+              <p className="flex items-center gap-3"><span className="w-2 h-2 rounded-full bg-red-500 shadow-sm"></span> KSEB Bill Copy</p>
+              <p className="flex items-center gap-3"><span className="w-2 h-2 rounded-full bg-red-500 shadow-sm"></span> Passport Size Photo</p>
+            </div>
+            
+            <div className="border-t border-gray-200 pt-4 mt-4">
+              <p className="text-[8pt] font-black text-gray-500 uppercase tracking-widest mb-2">Note:</p>
+              <ul className="list-disc pl-4 space-y-1 text-[7.5pt] font-medium text-gray-500 leading-relaxed marker:text-red-500">
+                <li>All documents should belong to the KSEB consumer number owner's name.</li>
+                <li>The KSEB consumer number owner's name and the bank passbook account holder's name must be the same for the consumer to receive MNRE subsidy.</li>
+                <li>The bank loan can only be applied for under the name of the KSEB consumer</li>
+                <li>Vendor-side bank loan documents will be provided only after MNRE registration, Jansamarth portal registration, and a 10% advance payment</li>
+                <li>KSEB charges and structure cost are not included in the loan amount. The customer must pay the balance amount beyond the sanctioned loan, along with KSEB charges and structure cost, separately.</li>
+              </ul>
+            </div>
+          </div>
+
+          {/* Legal Signatures */}
+          <div className="mt-auto pt-10 flex justify-between px-10 border-t-2 border-gray-50 w-full">
+            <div className="text-center w-60">
+              <div className="h-20 border-b border-gray-100 mb-4 flex items-end justify-center">
+                {/* Client Acceptance Seal removed */}
+              </div>
+              <p className="text-[10.5pt] font-black uppercase text-gray-900 tracking-[0.1em] pt-2 border-t-2 border-black">Authorized Customer</p>
+              <p className="text-[7.5pt] text-gray-400 font-black uppercase mt-2 tracking-[0.2em]">Signature & Full Name</p>
+            </div>
+            <div className="text-center w-60">
+              <div className="h-24 border-b border-gray-100 mb-4 relative">
+                 {state.company.seal ? (
+                   <img 
+                     src={state.company.seal} 
+                     alt="Seal" 
+                     className="absolute bottom-4 left-1/2 -translate-x-1/2 h-24 w-auto object-contain z-10" 
+                   />
+                 ) : (
+                   <span className="absolute bottom-2 left-1/2 -translate-x-1/2 text-[7pt] text-red-100 uppercase font-black tracking-widest whitespace-nowrap">Kondaas Official Seal</span>
+                 )}
+              </div>
+              <p className="text-[10.5pt] font-black uppercase text-red-600 tracking-[0.1em] pt-2 border-t-2 border-red-600">For {state.company.name}</p>
+              <p className="text-[7.5pt] text-gray-400 font-black uppercase mt-2 tracking-[0.2em]">Authorized Signatory</p>
             </div>
           </div>
         </div>
-
-        {/* Documentation Checklist */}
-        <div className="bg-gray-50 border border-gray-100 p-8 rounded-3xl mb-8 w-full shadow-inner">
-          <h4 className="text-[10pt] font-black text-red-600 uppercase tracking-[0.3em] mb-6 text-center">REQUIRED DOCUMENTS FOR APPLY SUBSIDY</h4>
-          <div className="grid grid-cols-2 gap-x-12 gap-y-4 text-[9pt] font-bold text-gray-700 mb-6">
-            <p className="flex items-center gap-3"><span className="w-2 h-2 rounded-full bg-red-500 shadow-sm"></span> Mobile Number</p>
-            <p className="flex items-center gap-3"><span className="w-2 h-2 rounded-full bg-red-500 shadow-sm"></span> Aadhar Card</p>
-            <p className="flex items-center gap-3"><span className="w-2 h-2 rounded-full bg-red-500 shadow-sm"></span> Email ID</p>
-            <p className="flex items-center gap-3"><span className="w-2 h-2 rounded-full bg-red-500 shadow-sm"></span> Cancelled Cheque / Bank Passbook Front Page</p>
-            <p className="flex items-center gap-3"><span className="w-2 h-2 rounded-full bg-red-500 shadow-sm"></span> Google Map Location (Longitude and Latitude)</p>
-            <p className="flex items-center gap-3"><span className="w-2 h-2 rounded-full bg-red-500 shadow-sm"></span> KSEB Bill Copy</p>
-            <p className="flex items-center gap-3"><span className="w-2 h-2 rounded-full bg-red-500 shadow-sm"></span> Passport Size Photo</p>
-          </div>
-          
-          <div className="border-t border-gray-200 pt-4 mt-4">
-             <p className="text-[8pt] font-black text-gray-500 uppercase tracking-widest mb-2">Note:</p>
-             <ul className="list-disc pl-4 space-y-1 text-[7.5pt] font-medium text-gray-500 leading-relaxed marker:text-red-500">
-               <li>All documents should belong to the KSEB consumer number owner's name.</li>
-               <li>The KSEB consumer number owner's name and the bank passbook account holder's name must be the same for the consumer to receive MNRE subsidy.</li>
-               <li>The bank loan can only be applied for under the name of the KSEB consumer</li>
-               <li>Vendor-side bank loan documents will be provided only after MNRE registration, Jansamarth portal registration, and a 10% advance payment</li>
-               <li>KSEB charges and structure cost are not included in the loan amount. The customer must pay the balance amount beyond the sanctioned loan, along with KSEB charges and structure cost, separately.</li>
-             </ul>
-          </div>
-        </div>
-
-        {/* Legal Signatures */}
-        <div className="mt-auto pt-10 flex justify-between px-10 border-t-2 border-gray-50 w-full">
-          <div className="text-center w-60">
-            <div className="h-20 border-b border-gray-100 mb-4 flex items-end justify-center">
-              {/* Client Acceptance Seal removed */}
-            </div>
-            <p className="text-[10.5pt] font-black uppercase text-gray-900 tracking-[0.1em] pt-2 border-t-2 border-black">Authorized Customer</p>
-            <p className="text-[7.5pt] text-gray-400 font-black uppercase mt-2 tracking-[0.2em]">Signature & Full Name</p>
-          </div>
-          <div className="text-center w-60">
-            <div className="h-20 border-b border-gray-100 mb-4 flex items-end justify-center relative">
-               {state.company.seal ? (
-                 <img src={state.company.seal} alt="Seal" className="h-full w-auto object-contain" />
-               ) : (
-                 <span className="text-[7pt] text-red-100 uppercase font-black mb-3 tracking-widest">Kondaas Official Seal</span>
-               )}
-            </div>
-            <p className="text-[10.5pt] font-black uppercase text-red-600 tracking-[0.1em] pt-2 border-t-2 border-red-600">For {state.company.name}</p>
-            <p className="text-[7.5pt] text-gray-400 font-black uppercase mt-2 tracking-[0.2em]">Authorized Signatory</p>
-          </div>
-        </div>
-
+        
         <PageFooter pageNum={4} />
       </div>
     </div>
