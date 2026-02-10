@@ -214,7 +214,7 @@ const App: React.FC = () => {
             </button>
           </form>
           <div className="mt-4 text-center">
-             <p className="text-xs text-gray-400">Default Admin: admin / admin123</p>
+             <p className="text-xs text-gray-400">Developed by Vishnu</p>
           </div>
         </div>
       </div>
