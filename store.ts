@@ -2,7 +2,7 @@
 import { supabase } from './supabaseClient';
 import { AppState, Term, BOMItem, ProductPricing, Quotation, ProductDescription, BOMTemplate, User } from './types';
 
-// Default Constants (Keep these for fallbacks)
+// Default Constants
 const DEFAULT_TERMS: Term[] = [
   { id: '1', text: 'Structure height will be 1 to 3 feet from floor level.', enabled: true, order: 1 },
   { id: '2', text: 'KSEB application & registration charges are included in the above cost.', enabled: true, order: 2 },
@@ -49,7 +49,7 @@ const DEFAULT_USERS: User[] = [
     id: 'admin-01',
     name: 'Administrator',
     username: 'admin',
-    password: 'admin123', // In a real app, use hasing. For this requirement, simple storage.
+    password: 'admin123',
     role: 'admin'
   }
 ];
@@ -101,13 +101,16 @@ export const INITIAL_STATE: AppState = {
 
 // --- API FUNCTIONS ---
 
-// Helpers to check for empty objects/arrays from DB (which happens on fresh install)
 const isEmpty = (obj: any) => !obj || (typeof obj === 'object' && Object.keys(obj).length === 0);
 const isArrayEmpty = (arr: any) => !arr || (Array.isArray(arr) && arr.length === 0);
 
+const seedDatabase = async () => {
+  console.log("Seeding database with initial state...");
+  await saveSettingsToSupabase(INITIAL_STATE);
+};
+
 export const fetchFullState = async (): Promise<AppState> => {
   try {
-    // 1. Fetch Settings
     const { data: settingsData, error: settingsError } = await supabase
       .from('settings')
       .select('*')
@@ -118,7 +121,6 @@ export const fetchFullState = async (): Promise<AppState> => {
       console.error('Error fetching settings:', settingsError);
     }
 
-    // 2. Fetch Quotations
     const { data: quotesData, error: quotesError } = await supabase
       .from('quotations')
       .select('*');
@@ -127,17 +129,17 @@ export const fetchFullState = async (): Promise<AppState> => {
       console.error('Error fetching quotations:', quotesError);
     }
 
-    // 3. Merge with Initial State
-    // We use the defaults if the DB returns empty objects (fresh table)
     const settings = settingsData || {};
-    
-    // Parse Quotations from DB format back to App format
+
+    // If fresh DB, seed it
+    if (!settingsData) {
+        seedDatabase();
+    }
+
     const parsedQuotes: Quotation[] = quotesData?.map((row: any) => row.data) || [];
     
-    // Calculate nextId based on existing quotes
     let maxId = 1000;
     parsedQuotes.forEach(q => {
-      // Extract number from KAPL-1001/02-24
       const match = q.id.match(/KAPL-(\d+)/);
       if (match && match[1]) {
         const num = parseInt(match[1]);
@@ -145,10 +147,8 @@ export const fetchFullState = async (): Promise<AppState> => {
       }
     });
 
-    // Handle Migration: Check if productDescriptions is legacy string[] or new ProductDescription[]
     let productDescs = settings.product_descriptions;
     if (productDescs && productDescs.length > 0 && typeof productDescs[0] === 'string') {
-      // Convert legacy strings to objects
       productDescs = productDescs.map((name: string, idx: number) => ({
         id: `legacy-${idx}`,
         name: name,
@@ -159,8 +159,13 @@ export const fetchFullState = async (): Promise<AppState> => {
       productDescs = INITIAL_STATE.productDescriptions;
     }
 
-    // Ensure users array exists, fallback to default admin if missing in DB
-    const users = !isArrayEmpty(settings.users) ? settings.users : INITIAL_STATE.users;
+    // ROBUST USER FETCHING: Explicitly check for the 'users' field
+    // If settings.users is missing/null, it implies the column is missing in DB or empty.
+    let users = settings.users;
+    if (!users || !Array.isArray(users) || users.length === 0) {
+        console.warn("Users list missing in DB or empty. Falling back to default admin.");
+        users = INITIAL_STATE.users;
+    }
 
     return {
       company: !isEmpty(settings.company) ? settings.company : INITIAL_STATE.company,
@@ -181,12 +186,9 @@ export const fetchFullState = async (): Promise<AppState> => {
   }
 };
 
-export const saveSettingsToSupabase = async (state: AppState) => {
-  // Use UPSERT instead of UPDATE to ensure the row is created if it doesn't exist
-  // We strictly rely on 'singleton_key' being 'global'
-  const { error } = await supabase
-    .from('settings')
-    .upsert({
+export const saveSettingsToSupabase = async (state: AppState): Promise<boolean> => {
+  // Explicitly map columns to ensure we don't send undefined if state is malformed
+  const payload = {
       singleton_key: 'global',
       company: state.company,
       bank: state.bank,
@@ -195,13 +197,24 @@ export const saveSettingsToSupabase = async (state: AppState) => {
       terms: state.terms,
       bom_templates: state.bomTemplates,
       product_descriptions: state.productDescriptions,
-      users: state.users
-    }, { onConflict: 'singleton_key' });
+      users: state.users // Vital: This must match the SQL column name
+  };
+
+  const { error } = await supabase
+    .from('settings')
+    .upsert(payload, { onConflict: 'singleton_key' });
 
   if (error) {
     console.error("Error saving settings to Supabase:", error);
-    alert("Failed to save settings to the database. Check console for details.");
+    if (error.code === '42703' || (error.message && error.message.includes('users'))) {
+       alert("DATABASE ERROR: The 'users' column is missing in Supabase. Please run the SQL Script provided in the dashboard.");
+    } else {
+       console.error("Save failed details:", error.message);
+    }
+    return false;
   }
+  
+  return true;
 };
 
 export const saveQuotationToSupabase = async (quotation: Quotation) => {

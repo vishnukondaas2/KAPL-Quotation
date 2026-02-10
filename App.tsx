@@ -5,7 +5,7 @@ import { AppState, Quotation, BOMTemplate, BOMItem, ProductPricing, ProductDescr
 import AdminPanel from './components/AdminPanel';
 import QuotationForm from './components/QuotationForm';
 import PrintableView from './components/PrintableView';
-import { LogIn, FileText, Settings, LayoutDashboard, PlusCircle, LogOut, Trash2, Plus, Copy, ChevronDown, ChevronUp, Loader2, Link, Users, UserPlus } from 'lucide-react';
+import { LogIn, FileText, Settings, LayoutDashboard, PlusCircle, LogOut, Trash2, Plus, Copy, ChevronDown, ChevronUp, Loader2, Link, Users, UserPlus, CheckCircle, AlertCircle } from 'lucide-react';
 
 declare var html2pdf: any;
 
@@ -102,10 +102,10 @@ const App: React.FC = () => {
   };
 
   // Wrapper for Settings updates to sync with DB
-  const handleSettingsUpdate = (newState: AppState) => {
+  const handleSettingsUpdate = async (newState: AppState) => {
     setState(newState);
-    // Debounce this in production, but for now we save directly
-    saveSettingsToSupabase(newState);
+    // This is handled inside SettingsView for status, but we call it here to propagate
+    await saveSettingsToSupabase(newState);
   };
 
   const editQuotation = (q: Quotation) => {
@@ -329,16 +329,24 @@ const App: React.FC = () => {
 };
 
 // ... SettingsView Component ...
-const SettingsView: React.FC<{ state: AppState, onUpdate: (s: AppState) => void }> = ({ state, onUpdate }) => {
+const SettingsView: React.FC<{ state: AppState, onUpdate: (s: AppState) => Promise<void> }> = ({ state, onUpdate }) => {
   const [activeSubTab, setActiveSubTab] = useState<'company' | 'users' | 'pricing' | 'terms' | 'bank' | 'warranty' | 'bom' | 'products'>('company');
   const [editingItemId, setEditingItemId] = useState<string | null>(null);
   const [expandedTemplateId, setExpandedTemplateId] = useState<string | null>(null);
+  const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle');
 
   // User Management State
   const [newUser, setNewUser] = useState<Partial<User>>({ role: 'user', name: '', username: '', password: '' });
 
-  const updateSub = (key: keyof AppState, data: any) => {
-    onUpdate({ ...state, [key]: data });
+  const updateSub = async (key: keyof AppState, data: any) => {
+    setSaveStatus('saving');
+    try {
+        await onUpdate({ ...state, [key]: data });
+        setSaveStatus('saved');
+        setTimeout(() => setSaveStatus('idle'), 2000);
+    } catch(e) {
+        setSaveStatus('error');
+    }
   };
 
   const handleAddUser = () => {
@@ -448,7 +456,14 @@ const SettingsView: React.FC<{ state: AppState, onUpdate: (s: AppState) => void 
   };
 
   return (
-    <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+    <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden relative">
+      {/* Save Status Indicator */}
+      <div className="absolute top-4 right-4 flex items-center gap-2 z-10">
+         {saveStatus === 'saving' && <span className="flex items-center text-xs font-bold text-gray-500 bg-gray-100 px-3 py-1 rounded-full"><Loader2 className="w-3 h-3 animate-spin mr-2"/> Saving...</span>}
+         {saveStatus === 'saved' && <span className="flex items-center text-xs font-bold text-green-600 bg-green-50 px-3 py-1 rounded-full"><CheckCircle className="w-3 h-3 mr-2"/> Saved</span>}
+         {saveStatus === 'error' && <span className="flex items-center text-xs font-bold text-red-600 bg-red-50 px-3 py-1 rounded-full"><AlertCircle className="w-3 h-3 mr-2"/> Save Failed</span>}
+      </div>
+
       <div className="flex border-b border-gray-200 bg-gray-50 overflow-x-auto">
         {(['company', 'users', 'pricing', 'terms', 'bank', 'warranty', 'bom', 'products'] as const).map(tab => (
           <button
