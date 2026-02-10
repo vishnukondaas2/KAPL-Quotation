@@ -159,6 +159,9 @@ export const fetchFullState = async (): Promise<AppState> => {
       productDescs = INITIAL_STATE.productDescriptions;
     }
 
+    // Ensure users array exists, fallback to default admin if missing in DB
+    const users = !isArrayEmpty(settings.users) ? settings.users : INITIAL_STATE.users;
+
     return {
       company: !isEmpty(settings.company) ? settings.company : INITIAL_STATE.company,
       bank: !isEmpty(settings.bank) ? settings.bank : INITIAL_STATE.bank,
@@ -167,7 +170,7 @@ export const fetchFullState = async (): Promise<AppState> => {
       terms: !isArrayEmpty(settings.terms) ? settings.terms : INITIAL_STATE.terms,
       bomTemplates: !isArrayEmpty(settings.bom_templates) ? settings.bom_templates : INITIAL_STATE.bomTemplates,
       productDescriptions: productDescs,
-      users: !isArrayEmpty(settings.users) ? settings.users : INITIAL_STATE.users,
+      users: users,
       quotations: parsedQuotes,
       nextId: maxId + 1
     };
@@ -179,9 +182,12 @@ export const fetchFullState = async (): Promise<AppState> => {
 };
 
 export const saveSettingsToSupabase = async (state: AppState) => {
+  // Use UPSERT instead of UPDATE to ensure the row is created if it doesn't exist
+  // We strictly rely on 'singleton_key' being 'global'
   const { error } = await supabase
     .from('settings')
-    .update({
+    .upsert({
+      singleton_key: 'global',
       company: state.company,
       bank: state.bank,
       pricing: state.productPricing,
@@ -190,10 +196,12 @@ export const saveSettingsToSupabase = async (state: AppState) => {
       bom_templates: state.bomTemplates,
       product_descriptions: state.productDescriptions,
       users: state.users
-    })
-    .eq('singleton_key', 'global');
+    }, { onConflict: 'singleton_key' });
 
-  if (error) console.error("Error saving settings:", error);
+  if (error) {
+    console.error("Error saving settings to Supabase:", error);
+    alert("Failed to save settings to the database. Check console for details.");
+  }
 };
 
 export const saveQuotationToSupabase = async (quotation: Quotation) => {
