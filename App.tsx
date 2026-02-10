@@ -1,11 +1,11 @@
 
 import React, { useState, useEffect, useRef } from 'react';
 import { fetchFullState, saveSettingsToSupabase, saveQuotationToSupabase, deleteQuotationFromSupabase, INITIAL_STATE } from './store';
-import { AppState, Quotation, BOMTemplate, BOMItem, ProductPricing } from './types';
+import { AppState, Quotation, BOMTemplate, BOMItem, ProductPricing, ProductDescription } from './types';
 import AdminPanel from './components/AdminPanel';
 import QuotationForm from './components/QuotationForm';
 import PrintableView from './components/PrintableView';
-import { LogIn, FileText, Settings, LayoutDashboard, PlusCircle, LogOut, Trash2, Plus, Copy, ChevronDown, ChevronUp, Loader2 } from 'lucide-react';
+import { LogIn, FileText, Settings, LayoutDashboard, PlusCircle, LogOut, Trash2, Plus, Copy, ChevronDown, ChevronUp, Loader2, Link } from 'lucide-react';
 
 declare var html2pdf: any;
 
@@ -388,7 +388,7 @@ const SettingsView: React.FC<{ state: AppState, onUpdate: (s: AppState) => void 
             onClick={() => setActiveSubTab(tab)}
             className={`px-6 py-4 text-sm font-medium capitalize whitespace-nowrap transition-colors ${activeSubTab === tab ? 'text-red-600 border-b-2 border-red-600 bg-white' : 'text-gray-500 hover:text-gray-700'}`}
           >
-            {tab === 'bom' ? 'BOM Templates' : tab === 'products' ? 'Product Names' : tab === 'pricing' ? 'Pricing Table' : tab}
+            {tab === 'bom' ? 'BOM Templates' : tab === 'products' ? 'Product Names & Links' : tab === 'pricing' ? 'Pricing Table' : tab}
           </button>
         ))}
       </div>
@@ -467,12 +467,83 @@ const SettingsView: React.FC<{ state: AppState, onUpdate: (s: AppState) => void 
 
         {activeSubTab === 'products' && (
           <div className="space-y-6">
-            <div className="flex justify-between items-center"><h3 className="text-lg font-bold">Product Headings</h3><button onClick={() => updateSub('productDescriptions', [...state.productDescriptions, 'New Product Label'])} className="bg-black text-white px-4 py-2 rounded text-sm font-bold flex items-center"><Plus className="w-4 h-4 mr-2" /> Add Heading</button></div>
+            <div className="flex justify-between items-center">
+              <h3 className="text-lg font-bold">Product Headings & Auto-Links</h3>
+              <button 
+                onClick={() => updateSub('productDescriptions', [...state.productDescriptions, { id: Date.now().toString(), name: 'New Product', defaultPricingId: '', defaultBomTemplateId: '' }])} 
+                className="bg-black text-white px-4 py-2 rounded text-sm font-bold flex items-center"
+              >
+                <Plus className="w-4 h-4 mr-2" /> Add Product
+              </button>
+            </div>
+            
             <div className="space-y-3">
               {state.productDescriptions.map((desc, idx) => (
-                <div key={idx} className="flex gap-2 p-2 border rounded items-center bg-gray-50">
-                  <input className="flex-1 bg-white border p-2 rounded text-sm" value={desc} onChange={e => { const newList = [...state.productDescriptions]; newList[idx] = e.target.value; updateSub('productDescriptions', newList); }} />
-                  <button onClick={() => updateSub('productDescriptions', state.productDescriptions.filter((_, i) => i !== idx))} className="text-red-600 p-2"><Trash2 className="w-4 h-4" /></button>
+                <div key={desc.id || idx} className="grid grid-cols-12 gap-3 p-4 border rounded items-start bg-gray-50">
+                  <div className="col-span-5">
+                    <label className="block text-[10px] uppercase font-black text-gray-400 mb-1">Product Description</label>
+                    <textarea 
+                      className="w-full bg-white border p-2 rounded text-sm font-medium" 
+                      value={desc.name} 
+                      rows={2}
+                      onChange={e => { 
+                        const newList = [...state.productDescriptions]; 
+                        newList[idx] = { ...desc, name: e.target.value }; 
+                        updateSub('productDescriptions', newList); 
+                      }} 
+                    />
+                  </div>
+                  
+                  <div className="col-span-3">
+                    <label className="block text-[10px] uppercase font-black text-gray-400 mb-1">Link Default Pricing</label>
+                    <div className="relative">
+                      <select 
+                        className="w-full bg-white border p-2 rounded text-xs appearance-none pr-6 truncate"
+                        value={desc.defaultPricingId || ''}
+                        onChange={e => {
+                           const newList = [...state.productDescriptions]; 
+                           newList[idx] = { ...desc, defaultPricingId: e.target.value }; 
+                           updateSub('productDescriptions', newList); 
+                        }}
+                      >
+                        <option value="">-- No Auto Select --</option>
+                        {state.productPricing.map(p => (
+                          <option key={p.id} value={p.id}>{p.name}</option>
+                        ))}
+                      </select>
+                      <Link className="absolute right-2 top-1/2 -translate-y-1/2 w-3 h-3 text-gray-400 pointer-events-none"/>
+                    </div>
+                  </div>
+
+                  <div className="col-span-3">
+                    <label className="block text-[10px] uppercase font-black text-gray-400 mb-1">Link Default BOM</label>
+                     <div className="relative">
+                      <select 
+                        className="w-full bg-white border p-2 rounded text-xs appearance-none pr-6 truncate"
+                        value={desc.defaultBomTemplateId || ''}
+                        onChange={e => {
+                           const newList = [...state.productDescriptions]; 
+                           newList[idx] = { ...desc, defaultBomTemplateId: e.target.value }; 
+                           updateSub('productDescriptions', newList); 
+                        }}
+                      >
+                        <option value="">-- No Auto Select --</option>
+                        {state.bomTemplates.map(t => (
+                          <option key={t.id} value={t.id}>{t.name}</option>
+                        ))}
+                      </select>
+                      <Link className="absolute right-2 top-1/2 -translate-y-1/2 w-3 h-3 text-gray-400 pointer-events-none"/>
+                    </div>
+                  </div>
+
+                  <div className="col-span-1 flex justify-end mt-5">
+                    <button 
+                      onClick={() => updateSub('productDescriptions', state.productDescriptions.filter((_, i) => i !== idx))} 
+                      className="text-red-600 p-2 hover:bg-red-50 rounded"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                  </div>
                 </div>
               ))}
             </div>

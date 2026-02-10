@@ -1,6 +1,6 @@
 
 import { supabase } from './supabaseClient';
-import { AppState, Term, BOMItem, ProductPricing, Quotation, CompanyConfig, BankConfig, WarrantyConfig, BOMTemplate } from './types';
+import { AppState, Term, BOMItem, ProductPricing, Quotation, ProductDescription, BOMTemplate } from './types';
 
 // Default Constants (Keep these for fallbacks)
 const DEFAULT_TERMS: Term[] = [
@@ -80,9 +80,9 @@ export const INITIAL_STATE: AppState = {
     { id: '3kw-std', name: '3kW Standard On-Grid', items: DEFAULT_BOM_3KW }
   ],
   productDescriptions: [
-    '3kW ON-GRID SOLAR POWER GENERATING SYSTEM',
-    '5kW ON-GRID SOLAR POWER GENERATING SYSTEM',
-    '10kW ON-GRID SOLAR POWER GENERATING SYSTEM'
+    { id: '1', name: '3kW ON-GRID SOLAR POWER GENERATING SYSTEM', defaultPricingId: 'p3kw', defaultBomTemplateId: '3kw-std' },
+    { id: '2', name: '5kW ON-GRID SOLAR POWER GENERATING SYSTEM', defaultPricingId: 'p5kw', defaultBomTemplateId: '' },
+    { id: '3', name: '10kW ON-GRID SOLAR POWER GENERATING SYSTEM', defaultPricingId: '', defaultBomTemplateId: '' }
   ],
   quotations: [],
   nextId: 1000
@@ -134,6 +134,20 @@ export const fetchFullState = async (): Promise<AppState> => {
       }
     });
 
+    // Handle Migration: Check if productDescriptions is legacy string[] or new ProductDescription[]
+    let productDescs = settings.product_descriptions;
+    if (productDescs && productDescs.length > 0 && typeof productDescs[0] === 'string') {
+      // Convert legacy strings to objects
+      productDescs = productDescs.map((name: string, idx: number) => ({
+        id: `legacy-${idx}`,
+        name: name,
+        defaultPricingId: '',
+        defaultBomTemplateId: ''
+      }));
+    } else if (!productDescs || productDescs.length === 0) {
+      productDescs = INITIAL_STATE.productDescriptions;
+    }
+
     return {
       company: !isEmpty(settings.company) ? settings.company : INITIAL_STATE.company,
       bank: !isEmpty(settings.bank) ? settings.bank : INITIAL_STATE.bank,
@@ -141,7 +155,7 @@ export const fetchFullState = async (): Promise<AppState> => {
       warranty: !isEmpty(settings.warranty) ? settings.warranty : INITIAL_STATE.warranty,
       terms: !isArrayEmpty(settings.terms) ? settings.terms : INITIAL_STATE.terms,
       bomTemplates: !isArrayEmpty(settings.bom_templates) ? settings.bom_templates : INITIAL_STATE.bomTemplates,
-      productDescriptions: !isArrayEmpty(settings.product_descriptions) ? settings.product_descriptions : INITIAL_STATE.productDescriptions,
+      productDescriptions: productDescs,
       quotations: parsedQuotes,
       nextId: maxId + 1
     };

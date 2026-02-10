@@ -45,7 +45,7 @@ const PrintableView: React.FC<Props> = ({ quotation, state }) => {
         <PageLogo />
         
         {/* Identity Block */}
-        <div className="flex justify-between items-start border-b-2 border-black pb-6 mb-6 w-full mt-4">
+        <div className="flex justify-between items-start border-b-2 border-black pb-3 mb-3 w-full mt-4">
           <div className="flex flex-col gap-1 items-start flex-1 pt-2">
             {/* Logo removed from flow, handled by PageLogo */}
             <div className="flex-1">
@@ -77,8 +77,8 @@ const PrintableView: React.FC<Props> = ({ quotation, state }) => {
         </div>
 
         {/* Proposal and Customer Primary Info */}
-        <div className="mb-6 w-full">
-          <div className="flex justify-between items-end mb-6">
+        <div className="mb-4 w-full">
+          <div className="flex justify-between items-end mb-4">
             <div className="flex-1">
                <h4 className="text-[6pt] font-black text-gray-400 uppercase tracking-widest mb-2">Customer Details</h4>
                <p className="text-[14pt] font-[900] text-black uppercase leading-tight">{quotation.customerName}</p>
@@ -91,7 +91,7 @@ const PrintableView: React.FC<Props> = ({ quotation, state }) => {
           </div>
 
           {/* Unified Customer Details Line */}
-          <div className="bg-gray-50 border border-gray-100 p-4 rounded-xl flex flex-wrap items-center justify-start text-[8pt] font-bold text-gray-600 gap-x-8 gap-y-2">
+          <div className="bg-gray-50 border border-gray-100 p-2.5 rounded-xl flex flex-wrap items-center justify-start text-[8pt] font-bold text-gray-600 gap-x-8 gap-y-1">
             <div className="flex items-center gap-2">
               <span className="text-black font-black uppercase text-[6.5pt] tracking-widest opacity-40">Consumer No:</span>
               <span className="text-black uppercase">{quotation.discomNumber || 'N/A'}</span>
@@ -112,36 +112,36 @@ const PrintableView: React.FC<Props> = ({ quotation, state }) => {
         </div>
 
         {/* PRODUCT NAME moved above Pricing Section */}
-        <div className="bg-red-50 border-l-4 border-red-600 p-4 w-full rounded-r-md shadow-sm text-left mb-6">
+        <div className="bg-red-50 border-l-4 border-red-600 p-2.5 w-full rounded-r-md shadow-sm text-left mb-3">
           <span className="text-[6.5pt] text-red-400 font-black uppercase tracking-widest block mb-1 uppercase">PRODUCT NAME / PROPOSED SYSTEM</span>
-          <p className="text-[11pt] font-black text-red-700 uppercase leading-snug">{quotation.systemDescription}</p>
+          <p className="text-[10pt] font-black text-red-700 uppercase leading-snug">{quotation.systemDescription}</p>
         </div>
 
         {/* Pricing Estimation Header (Single Line) */}
-        <div className="mb-4 w-full border-b-2 border-red-600 pb-1">
+        <div className="mb-2 w-full border-b-2 border-red-600 pb-1">
           <h3 className="text-[9.5pt] font-black text-red-600 uppercase tracking-[0.25em]">PRICING AND ESTIMATION</h3>
         </div>
 
         {/* Pricing Estimation Table */}
-        <div className="mb-6 w-full">
+        <div className="mb-4 w-full">
           <div className="rounded-xl overflow-hidden border border-gray-100 shadow-sm">
             <table className="table-modern">
               <thead>
                 <tr>
                   <th className="w-20 text-center">SL No</th>
-                  <th className="py-5">Description</th>
+                  <th className="py-3">Description</th>
                   <th className="text-right w-44 pr-10">Rate (INR)</th>
                 </tr>
               </thead>
-              <tbody className="text-[10pt] font-bold">
+              <tbody className="text-[9pt] font-bold">
                 <tr>
                   <td className="text-center text-gray-300 font-black">01</td>
-                  <td className="py-6 uppercase tracking-tight text-gray-800">Total plant cost of {quotation.systemDescription}</td>
+                  <td className="py-3 uppercase tracking-tight text-gray-800">Total plant cost of {quotation.systemDescription}</td>
                   <td className="text-right font-black pr-10 text-black">₹ {quotation.pricing.onGridSystemCost.toLocaleString('en-IN')}</td>
                 </tr>
                 <tr className="bg-red-50/40">
                   <td className="text-center text-red-200 font-black">02</td>
-                  <td className="py-5 uppercase tracking-tight text-red-700 leading-snug">
+                  <td className="py-3 uppercase tracking-tight text-red-700 leading-snug">
                     Subsidy Amount as Per PM Surya Ghar Approved Guidelines Directly Credit to Customer Bank Account
                   </td>
                   <td className="text-right font-black pr-10 text-red-600">(-) ₹ {quotation.pricing.subsidyAmount.toLocaleString('en-IN')}</td>
@@ -169,7 +169,7 @@ const PrintableView: React.FC<Props> = ({ quotation, state }) => {
         </div>
 
         {/* Additional Charges (Customer Scope) */}
-        <div className="mb-8 w-full">
+        <div className="mb-4 w-full">
           <div className="rounded-xl overflow-hidden border border-gray-100 shadow-sm bg-gray-50/30">
             <table className="table-modern">
               <thead>

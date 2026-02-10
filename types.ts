@@ -67,6 +67,13 @@ export interface BOMTemplate {
   items: BOMItem[];
 }
 
+export interface ProductDescription {
+  id: string;
+  name: string;
+  defaultPricingId?: string; // Link to ProductPricing.id
+  defaultBomTemplateId?: string; // Link to BOMTemplate.id
+}
+
 export interface Quotation {
   id: string; // KAPL-XXXX
   date: string;
@@ -84,11 +91,11 @@ export interface Quotation {
 export interface AppState {
   company: CompanyConfig;
   bank: BankConfig;
-  productPricing: ProductPricing[]; // Changed from single pricing object
+  productPricing: ProductPricing[]; 
   warranty: WarrantyConfig;
   terms: Term[];
   bomTemplates: BOMTemplate[];
-  productDescriptions: string[]; 
+  productDescriptions: ProductDescription[]; // Changed from string[] to object array
   quotations: Quotation[];
   nextId: number;
 }
