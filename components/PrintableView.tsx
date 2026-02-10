@@ -222,23 +222,23 @@ const PrintableView: React.FC<Props> = ({ quotation, state }) => {
           <table className="table-modern">
             <thead>
               <tr className="bg-black text-white">
-                <th className="w-12 text-center">#</th>
-                <th className="w-1/4 py-5">Products</th>
-                <th className="text-center w-16">Qty</th>
-                <th className="text-left w-16 pl-4">UOM</th>
-                <th>Specification/Type</th>
-                <th className="w-48 text-center">Make</th>
+                <th className="w-[5%] text-center py-3">#</th>
+                <th className="w-[20%] text-left py-3">Products</th>
+                <th className="w-[8%] text-center py-3">Qty</th>
+                <th className="w-[7%] text-left py-3 pl-2">UOM</th>
+                <th className="w-[30%] text-left py-3">Specification/Type</th>
+                <th className="w-[30%] text-left py-3">Make</th>
               </tr>
             </thead>
-            <tbody className="text-[8pt]">
+            <tbody className="text-[7pt]">
               {quotation.bom.map((item, idx) => (
                 <tr key={item.id} className={idx % 2 === 0 ? 'bg-white' : 'bg-gray-50/50'}>
-                  <td className="text-center text-gray-500 py-3">{idx + 1}</td>
-                  <td className="text-gray-900 uppercase tracking-tight font-medium">{item.product}</td>
-                  <td className="text-center text-gray-900 font-medium">{item.quantity}</td>
-                  <td className="text-left text-gray-900 font-medium pl-4 whitespace-nowrap">{item.uom}</td>
-                  <td className="text-gray-600 leading-relaxed pr-2 py-3">{item.specification}</td>
-                  <td className="text-center text-gray-900 uppercase tracking-tight">{item.make}</td>
+                  <td className="text-center text-gray-500 py-2 border-b border-gray-100 align-top">{idx + 1}</td>
+                  <td className="text-gray-900 uppercase tracking-tight font-medium py-2 border-b border-gray-100 align-top whitespace-normal break-words pr-2">{item.product}</td>
+                  <td className="text-center text-gray-900 font-medium py-2 border-b border-gray-100 align-top">{item.quantity}</td>
+                  <td className="text-left text-gray-900 font-medium pl-2 py-2 border-b border-gray-100 align-top whitespace-nowrap">{item.uom}</td>
+                  <td className="text-gray-600 leading-relaxed py-2 border-b border-gray-100 align-top whitespace-normal break-words pr-2">{item.specification}</td>
+                  <td className="text-left text-gray-900 uppercase tracking-tight py-2 border-b border-gray-100 align-top whitespace-normal break-words">{item.make}</td>
                 </tr>
               ))}
             </tbody>
