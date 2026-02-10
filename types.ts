@@ -1,0 +1,94 @@
+
+export interface CompanyConfig {
+  name: string;
+  headOffice: string;
+  regionalOffice1: string;
+  regionalOffice2: string;
+  phone: string;
+  email: string;
+  website: string;
+  logo: string; // Base64 or URL
+  seal: string; // Base64 or URL for official seal
+  gstin: string;
+}
+
+export interface BankConfig {
+  companyName: string;
+  bankName: string;
+  accountNumber: string;
+  branch: string;
+  ifsc: string;
+  address: string;
+  pan: string;
+  upiId: string;
+  gstNumber: string;
+}
+
+export interface PricingConfig {
+  onGridSystemCost: number;
+  rooftopPlantCost: number;
+  subsidyAmount: number;
+  ksebCharges: number;
+  additionalMaterialCost: number;
+  customizedStructureCost: number;
+}
+
+export interface ProductPricing extends PricingConfig {
+  id: string;
+  name: string;
+}
+
+export interface WarrantyConfig {
+  panelWarranty: string;
+  inverterWarranty: string;
+  systemWarranty: string;
+  monitoringSystem: string;
+}
+
+export interface Term {
+  id: string;
+  text: string;
+  enabled: boolean;
+  order: number;
+}
+
+export interface BOMItem {
+  id: string;
+  product: string;
+  uom: string;
+  quantity: string;
+  specification: string;
+  make: string;
+}
+
+export interface BOMTemplate {
+  id: string;
+  name: string; // The "Product Name" used for selection
+  items: BOMItem[];
+}
+
+export interface Quotation {
+  id: string; // KAPL-XXXX
+  date: string;
+  customerName: string;
+  discomNumber: string;
+  address: string;
+  mobile: string;
+  email: string;
+  location: string;
+  pricing: PricingConfig;
+  bom: BOMItem[];
+  systemDescription: string;
+}
+
+export interface AppState {
+  company: CompanyConfig;
+  bank: BankConfig;
+  productPricing: ProductPricing[]; // Changed from single pricing object
+  warranty: WarrantyConfig;
+  terms: Term[];
+  bomTemplates: BOMTemplate[];
+  productDescriptions: string[]; 
+  quotations: Quotation[];
+  nextId: number;
+}
