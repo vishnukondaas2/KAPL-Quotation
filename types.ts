@@ -85,7 +85,7 @@ export interface User {
 }
 
 export interface Quotation {
-  id: string; // KAPL-XXXX
+  id: string; // KLMNRE-XXXX
   date: string;
   customerName: string;
   discomNumber: string;

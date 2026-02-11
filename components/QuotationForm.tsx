@@ -15,9 +15,9 @@ interface Props {
 const QuotationForm: React.FC<Props> = ({ state, currentUser, editData, onSave, onSaveTemplate, onCancel }) => {
   const generateNewId = () => {
     const now = new Date();
-    const mm = (now.getMonth() + 1).toString().padStart(2, '0');
+    const dd = now.getDate().toString().padStart(2, '0');
     const yy = now.getFullYear().toString().slice(-2);
-    return `KAPL-${state.nextId}/${mm}-${yy}`;
+    return `KLMNRE-${state.nextId}/${dd}-${yy}`;
   };
 
   const [formData, setFormData] = useState<Quotation>({

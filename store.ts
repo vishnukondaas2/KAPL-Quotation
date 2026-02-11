@@ -140,7 +140,8 @@ export const fetchFullState = async (): Promise<AppState> => {
     
     let maxId = 1000;
     parsedQuotes.forEach(q => {
-      const match = q.id.match(/KAPL-(\d+)/);
+      // Check for both old KAPL and new KLMNRE prefixes for ID generation logic
+      const match = q.id.match(/(?:KAPL|KLMNRE)-(\d+)/); 
       if (match && match[1]) {
         const num = parseInt(match[1]);
         if (num > maxId) maxId = num;
